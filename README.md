@@ -12,7 +12,7 @@ Resuelve los dolores relevados en reseñas: demora en mesa, faltantes que siguen
 | Comandas de barra (tiempo real, aviso sonoro, alerta a los 10 min) + “sin stock” | `/panel/barra` | Barra, mozo, dueño |
 | Mapa de mesas, detalle, cargar pedido a mano, cobrar y cerrar | `/panel/mesas` | Mozo, dueño |
 | Carta: categorías, productos, precios y listas de opciones por producto | `/panel/carta` | Dueño |
-| Apariencia (nombre, logo, color), mesas, QR para imprimir y equipo | `/panel/local` | Dueño |
+| Apariencia (nombre, portada con foto o video, logo, color), mesas, QR para imprimir y equipo | `/panel/local` | Dueño |
 | Reportes: cobrado, pedidos, espera promedio y máxima, ranking de productos y de cada lista de opciones | `/panel/reportes` | Dueño |
 
 Fuera de la v1: facturación electrónica ARCA, cobro online en el QR, stock de insumos por receta, delivery y reservas.

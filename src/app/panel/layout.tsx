@@ -39,7 +39,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
         <header className="no-imprimir sticky top-0 z-20 border-b border-borde bg-crema/95 backdrop-blur">
           {/* En el celular el menú baja a su propia fila y se acomoda en varias líneas: nunca queda escondido. */}
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-            <p className="min-w-0 flex-1 truncate font-titulo text-lg font-bold md:flex-none">{negocio.nombre}</p>
+            <p className="min-w-0 flex-1 truncate font-titulo text-lg font-medium md:flex-none">{negocio.nombre}</p>
             <button className="shrink-0 text-sm text-suave underline md:order-last" onClick={async () => { await supabase().auth.signOut(); router.replace("/login"); }}>
               Salir
             </button>

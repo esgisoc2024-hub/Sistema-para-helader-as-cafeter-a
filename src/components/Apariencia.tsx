@@ -6,32 +6,35 @@ import { borrarImagen } from "@/lib/imagenes";
 import { COLORES_SUGERIDOS, contrasteConBlanco, estiloMarca } from "@/lib/color";
 import { mensajeError, precio } from "@/lib/formato";
 import { SubirImagen } from "./SubirImagen";
+import { SubirPortada } from "./SubirPortada";
 import type { Negocio } from "@/lib/tipos";
 
 export function Apariencia({ negocio }: { negocio: Negocio }) {
   const [nombre, setNombre] = useState(negocio.nombre);
   const [logo, setLogo] = useState<string | null>(negocio.logo_url);
-  const [color, setColor] = useState(negocio.color || "#d94a64");
-  const [guardado, setGuardado] = useState({ nombre: negocio.nombre, logo: negocio.logo_url, color: negocio.color });
+  const [color, setColor] = useState(negocio.color || "#c8203f");
+  const [portada, setPortada] = useState({ url: negocio.portada_url, tipo: negocio.portada_tipo });
+  const [guardado, setGuardado] = useState({ nombre: negocio.nombre, logo: negocio.logo_url, color: negocio.color, portada: negocio.portada_url });
   const [estado, setEstado] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
   const [guardando, setGuardando] = useState(false);
 
-  const cambios = nombre.trim() !== guardado.nombre || logo !== guardado.logo || color !== guardado.color;
+  const cambios = nombre.trim() !== guardado.nombre || logo !== guardado.logo || color !== guardado.color || portada.url !== guardado.portada;
   const claro = contrasteConBlanco(color) < 3.5;
 
   async function guardar() {
     setGuardando(true); setEstado(null);
-    const { error } = await supabase().from("negocios").update({ nombre: nombre.trim(), logo_url: logo, color }).eq("id", negocio.id);
+    const { error } = await supabase().from("negocios").update({ nombre: nombre.trim(), logo_url: logo, color, portada_url: portada.url, portada_tipo: portada.tipo }).eq("id", negocio.id);
     setGuardando(false);
     if (error) return setEstado({ tipo: "error", texto: mensajeError(error) });
     if (guardado.logo && guardado.logo !== logo) borrarImagen(guardado.logo); // limpia el logo anterior
-    setGuardado({ nombre: nombre.trim(), logo, color });
+    if (guardado.portada && guardado.portada !== portada.url) borrarImagen(guardado.portada);
+    setGuardado({ nombre: nombre.trim(), logo, color, portada: portada.url });
     setEstado({ tipo: "ok", texto: "Listo. Los clientes ya ven los cambios en la carta." });
   }
 
   return (
     <section className="tarjeta p-5">
-      <h2 className="font-titulo text-xl font-bold">Apariencia</h2>
+      <h2 className="font-titulo text-xl font-medium">Apariencia</h2>
       <p className="mt-1 text-sm text-suave">Así se ve tu local en la carta que abre el cliente con el QR.</p>
 
       <div className="mt-4 grid gap-6 md:grid-cols-[1fr_280px]">
@@ -40,6 +43,8 @@ export function Apariencia({ negocio }: { negocio: Negocio }) {
             <label className="etiqueta" htmlFor="ap-nombre">Nombre del local</label>
             <input id="ap-nombre" className="campo" maxLength={80} value={nombre} onChange={(e) => setNombre(e.target.value)} />
           </div>
+
+          <SubirPortada negocioId={negocio.id} url={portada.url} tipo={portada.tipo} onCambio={setPortada} />
 
           <SubirImagen negocioId={negocio.id} tipo="logo" url={logo} onCambio={setLogo} etiqueta="Logo (cuadrado se ve mejor)" />
 
@@ -70,7 +75,7 @@ export function Apariencia({ negocio }: { negocio: Negocio }) {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={logo} alt="" className="h-9 w-9 rounded-lg bg-papel object-contain" />
             )}
-            <p className="truncate font-titulo text-lg font-bold">{nombre || "Tu local"}</p>
+            <p className="truncate font-titulo text-lg font-medium">{nombre || "Tu local"}</p>
           </div>
           <div className="tarjeta mt-3 flex items-center gap-2 p-3">
             <div className="flex-1">

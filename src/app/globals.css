@@ -1,25 +1,37 @@
 @import "tailwindcss";
 
-/* Paleta: crema, frutilla y chocolate. Alto contraste para usar en el salón con mucha luz. */
+/* Paleta boutique: porcelana, cacao, frutilla y azul cono; pistacho y mango para estados.
+   Los nombres de los tokens se mantienen (frutilla, menta, limon, choco…) para no tocar las pantallas. */
 @theme {
-  --color-crema: #fff8ef;
-  --color-papel: #ffffff;
-  --color-tinta: #2b1d16;
-  --color-suave: #7a6458;
-  --color-borde: #ecdccb;
-  --color-frutilla: #d94a64;
-  --color-frutilla-osc: #b8364f;
-  --color-menta: #2f9e7a;
-  --color-limon: #f2b632;
-  --color-choco: #5a3a2a;
-  --font-sans: "Inter Variable", system-ui, sans-serif;
-  --font-titulo: "Fraunces Variable", Georgia, serif;
+  --color-crema: #faf7f6;        /* porcelana: fondo */
+  --color-papel: #ffffff;        /* leche: superficies */
+  --color-rubor: #f7dde2;        /* rosa suave: selecciones */
+  --color-tinta: #2e1f1c;        /* cacao: texto */
+  --color-suave: #76645f;        /* cacao suave: texto secundario */
+  --color-borde: #eee3e1;        /* línea rosada muy suave */
+  --color-frutilla: #c8203f;     /* acción principal */
+  --color-frutilla-osc: #a01832;
+  --color-menta: #4e7f55;        /* pistacho: listo / éxito */
+  --color-limon: #e9a62e;        /* mango: preparando */
+  --color-choco: #1f2b47;        /* azul cono: etiquetas y panel */
+  --font-sans: "Jost Variable", system-ui, sans-serif;
+  --font-titulo: "Bodoni Moda Variable", "Didot", Georgia, serif;
 }
 
 body {
   background: var(--color-crema);
   color: var(--color-tinta);
   -webkit-tap-highlight-color: transparent;
+  font-feature-settings: "ss01";
+}
+
+/* Títulos Bodoni: alto contraste, un poco más apretados. */
+.font-titulo { letter-spacing: -0.01em; font-optical-sizing: auto; }
+
+:focus-visible { outline: 2px solid var(--color-frutilla); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
 @utility btn {
@@ -32,10 +44,10 @@ body {
   @apply btn border border-borde bg-papel text-tinta hover:bg-crema;
 }
 @utility tarjeta {
-  @apply rounded-2xl border border-borde bg-papel;
+  @apply rounded-[22px] border border-borde bg-papel;
 }
 @utility campo {
-  @apply w-full rounded-xl border border-borde bg-papel px-4 py-3 outline-none focus:border-frutilla focus:ring-2 focus:ring-frutilla/20;
+  @apply w-full rounded-2xl border border-borde bg-papel px-4 py-3 outline-none focus:border-frutilla focus:ring-2 focus:ring-frutilla/15;
 }
 @utility etiqueta {
   @apply mb-1 block text-sm font-medium text-suave;

@@ -33,8 +33,8 @@ export function estiloMarca(hex: string | null | undefined): React.CSSProperties
 }
 
 export const COLORES_SUGERIDOS = [
-  { nombre: "Frutilla", hex: "#d94a64" }, { nombre: "Chocolate", hex: "#6b3e26" },
-  { nombre: "Pistacho", hex: "#4f8a3c" }, { nombre: "Menta", hex: "#2f9e7a" },
-  { nombre: "Arándano", hex: "#4b4fb8" }, { nombre: "Uva", hex: "#7b3fa0" },
-  { nombre: "Naranja", hex: "#d9661f" }, { nombre: "Café", hex: "#3d2b1f" },
+  { nombre: "Frutilla", hex: "#c8203f" }, { nombre: "Rosa coqueta", hex: "#c94a6e" },
+  { nombre: "Frambuesa", hex: "#9e2a5b" }, { nombre: "Cacao", hex: "#5a3428" },
+  { nombre: "Pistacho", hex: "#4e7f55" }, { nombre: "Azul cono", hex: "#1f2b47" },
+  { nombre: "Lavanda", hex: "#6f5aa3" }, { nombre: "Mango", hex: "#b9741a" },
 ];

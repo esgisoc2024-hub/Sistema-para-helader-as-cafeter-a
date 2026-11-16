@@ -121,54 +121,74 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
           <Link href="/panel/mesas" className="underline">Volver a mesas</Link>
         </div>
       )}
-      <header className="sticky top-0 z-10 border-b border-borde bg-crema/95 px-4 pb-3 pt-4 backdrop-blur">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
+      {/* Portada: la foto o el video del local, con el nombre encima. Sin portada, cabecera simple. */}
+      {carta.portada_url ? (
+        <header className="relative h-[46dvh] min-h-64 overflow-hidden rounded-b-[32px] bg-tinta">
+          {carta.portada_tipo === "video" ? (
+            <video src={carta.portada_url} className="absolute inset-0 h-full w-full object-cover" autoPlay muted loop playsInline />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={carta.portada_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/20" />
+          <span className="absolute right-4 top-4 rounded-full bg-papel/90 px-3 py-1 text-sm font-medium text-tinta backdrop-blur">Mesa {carta.mesa}</span>
+          <div className="absolute inset-x-0 bottom-0 flex items-end gap-3 p-5 text-white">
             {carta.logo_url && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={carta.logo_url} alt={`Logo de ${carta.negocio}`} className="h-11 w-11 shrink-0 rounded-xl bg-papel object-contain" />
+              <img src={carta.logo_url} alt="" className="h-14 w-14 shrink-0 rounded-2xl bg-papel object-contain" />
             )}
-            <h1 className="truncate font-titulo text-2xl font-bold">{carta.negocio}</h1>
+            <h1 className="font-titulo text-4xl font-medium leading-none">{carta.negocio}</h1>
           </div>
-          <span className="shrink-0 rounded-full bg-choco px-3 py-1 text-sm font-semibold text-white">Mesa {carta.mesa}</span>
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-1 rounded-full bg-borde/60 p-1 text-sm font-semibold">
+        </header>
+      ) : (
+        <header className="px-5 pb-2 pt-8 text-center">
+          {carta.logo_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={carta.logo_url} alt="" className="mx-auto mb-3 h-16 w-16 rounded-2xl bg-papel object-contain" />
+          )}
+          <h1 className="font-titulo text-4xl font-medium leading-none">{carta.negocio}</h1>
+          <p className="mt-2 text-sm text-suave">Mesa {carta.mesa}</p>
+        </header>
+      )}
+
+      <div className="sticky top-0 z-10 border-b border-borde bg-crema/95 px-4 pb-3 pt-3 backdrop-blur">
+        <div className="grid grid-cols-2 gap-1 rounded-full bg-borde/70 p-1 text-sm font-medium">
           {(["carta", "pedido"] as const).map((v) => (
             <button key={v} onClick={() => setVista(v)}
               className={`rounded-full py-2 ${vista === v ? "bg-papel shadow-sm" : "text-suave"}`}>
-              {v === "carta" ? "Carta" : `Mi pedido${hayPedidos ? ` · ${estado!.pedidos.length}` : ""}`}
+              {v === "carta" ? "Carta" : hayPedidos ? `Mi pedido (${estado!.pedidos.length})` : "Mi pedido"}
             </button>
           ))}
         </div>
         {vista === "carta" && (
-          <nav className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 text-sm">
+          <nav aria-label="Categorías" className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 text-sm">
             {carta.categorias.filter((c) => c.productos.length).map((c) => (
-              <a key={c.id} href={`#cat-${c.id}`} className="shrink-0 rounded-full border border-borde bg-papel px-3 py-1.5">{c.nombre}</a>
+              <a key={c.id} href={`#cat-${c.id}`} className="shrink-0 rounded-full border border-borde bg-papel px-3.5 py-1.5">{c.nombre}</a>
             ))}
           </nav>
         )}
-      </header>
+      </div>
 
       {vista === "carta" ? (
         <div className="space-y-8 px-4 pt-4">
           {carta.categorias.filter((c) => c.productos.length).map((c) => (
-            <section key={c.id} id={`cat-${c.id}`} className="scroll-mt-40">
-              <h2 className="mb-3 font-titulo text-xl font-bold">{c.nombre}</h2>
-              <ul className="space-y-3">
+            <section key={c.id} id={`cat-${c.id}`} className="scroll-mt-32">
+              <h2 className="mb-4 font-titulo text-3xl font-medium">{c.nombre}</h2>
+              <ul className="grid grid-cols-2 gap-3">
                 {c.productos.map((p) => (
-                  <li key={p.id}>
+                  <li key={p.id} className={p.foto_url ? "" : "col-span-2"}>
                     <button onClick={() => (p.grupos.length > 0 ? setEligiendo(p) : agregar(p, [], ""))}
-                      className="tarjeta flex w-full items-center gap-3 p-3 text-left active:bg-crema">
+                      className={`tarjeta relative w-full overflow-hidden text-left active:bg-rubor/40 ${p.foto_url ? "flex h-full flex-col" : "flex items-center gap-3 p-4"}`}>
                       {p.foto_url && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.foto_url} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
+                        <img src={p.foto_url} alt="" loading="lazy" className="aspect-[4/5] w-full object-cover" />
                       )}
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold">{p.nombre}</p>
+                      <div className={p.foto_url ? "flex-1 p-3 pr-12" : "min-w-0 flex-1"}>
+                        <p className="font-medium leading-snug">{p.nombre}</p>
                         {p.descripcion && <p className="text-sm text-suave">{p.descripcion}</p>}
-                        <p className="mt-1 font-semibold text-frutilla">{precio(p.precio)}</p>
+                        <p className="mt-1 text-frutilla">{precio(p.precio)}</p>
                       </div>
-                      <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-frutilla text-xl text-white">+</span>
+                      <span aria-hidden className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-frutilla text-xl text-white ${p.foto_url ? "absolute bottom-3 right-3" : ""}`}>+</span>
                       <span className="sr-only">Agregar</span>
                     </button>
                   </li>
@@ -334,7 +354,7 @@ function Hoja({ titulo, onCerrar, children }: { titulo: string; onCerrar: () => 
       <div role="dialog" aria-modal aria-label={titulo} onClick={(e) => e.stopPropagation()}
         className="max-h-[85dvh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-crema p-5 pb-8">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-titulo text-xl font-bold">{titulo}</h2>
+          <h2 className="font-titulo text-xl font-medium">{titulo}</h2>
           <button onClick={onCerrar} aria-label="Cerrar" className="h-9 w-9 rounded-full border border-borde bg-papel">✕</button>
         </div>
         {children}

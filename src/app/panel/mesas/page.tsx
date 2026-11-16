@@ -51,7 +51,7 @@ export default function Mesas() {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-baseline gap-3">
-        <h1 className="font-titulo text-2xl font-bold">Mesas</h1>
+        <h1 className="font-titulo text-2xl font-medium">Mesas</h1>
         <span className="text-sm text-suave">{ocupadas} ocupadas de {mesas.length}</span>
       </div>
 
@@ -65,7 +65,7 @@ export default function Mesas() {
         {mesas.map((m) => (
           <button key={m.id} onClick={() => setElegida(m.id)}
             className={`relative aspect-square rounded-2xl border-2 p-3 text-left transition active:scale-95 ${ESTILO_MESA[m.estado]} ${elegida === m.id ? "ring-4 ring-choco/30" : ""}`}>
-            <span className="font-titulo text-3xl font-bold text-tinta">{m.numero}</span>
+            <span className="font-titulo text-3xl font-medium text-tinta">{m.numero}</span>
             <span className="absolute bottom-3 left-3 right-3 text-sm font-semibold">
               {m.estado === "libre" ? "Libre" : precio(totalMesa(m.id))}
               {m.estado === "pide_cuenta" && <span className="block text-xs text-frutilla-osc">Pide la cuenta</span>}
@@ -115,7 +115,7 @@ function DetalleMesa({ mesa, pedidos, total, onCerrar, onCambio }: {
       <aside role="dialog" aria-label={`Mesa ${mesa.numero}`} onClick={(e) => e.stopPropagation()}
         className="flex h-full w-full max-w-md flex-col overflow-y-auto bg-crema p-5">
         <div className="flex items-center justify-between">
-          <h2 className="font-titulo text-3xl font-bold">Mesa {mesa.numero}</h2>
+          <h2 className="font-titulo text-3xl font-medium">Mesa {mesa.numero}</h2>
           <button onClick={onCerrar} aria-label="Cerrar" className="h-10 w-10 rounded-full border border-borde bg-papel">✕</button>
         </div>
 
@@ -149,7 +149,7 @@ function DetalleMesa({ mesa, pedidos, total, onCerrar, onCambio }: {
         </div>
 
         <div className="sticky bottom-0 -mx-5 mt-4 border-t border-borde bg-crema px-5 pt-4">
-          <div className="flex justify-between font-titulo text-2xl font-bold"><span>Total</span><span>{precio(total)}</span></div>
+          <div className="flex justify-between font-titulo text-2xl font-medium"><span>Total</span><span>{precio(total)}</span></div>
           {error && <p role="alert" className="mt-2 text-sm text-frutilla-osc">{error}</p>}
           {cobrando ? (
             <div className="mt-3 grid grid-cols-3 gap-2">

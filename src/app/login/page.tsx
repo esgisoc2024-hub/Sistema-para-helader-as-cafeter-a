@@ -35,7 +35,7 @@ function Formulario() {
     <main className="grid min-h-dvh place-items-center px-4">
       <form onSubmit={enviar} className="tarjeta w-full max-w-sm p-6">
         <Link href="/" className="text-sm font-semibold text-frutilla">Mesa Dulce</Link>
-        <h1 className="mt-1 font-titulo text-2xl font-bold">{registro ? "Crear cuenta" : "Ingresar"}</h1>
+        <h1 className="mt-1 font-titulo text-2xl font-medium">{registro ? "Crear cuenta" : "Ingresar"}</h1>
         <label className="etiqueta mt-5" htmlFor="email">Email</label>
         <input id="email" type="email" required autoComplete="email" className="campo" value={email} onChange={(e) => setEmail(e.target.value)} />
         <label className="etiqueta mt-3" htmlFor="clave">Contraseña</label>

@@ -96,13 +96,13 @@ export default function Carta() {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <div>
-        <h1 className="mb-4 font-titulo text-2xl font-bold">Carta</h1>
+        <h1 className="mb-4 font-titulo text-2xl font-medium">Carta</h1>
         {error && <p role="alert" className="mb-3 rounded-xl bg-frutilla/10 p-3 text-sm text-frutilla-osc">{error}</p>}
         <div className="space-y-6">
           {categorias.map((c) => (
             <section key={c.id} className="tarjeta p-4">
               <div className="mb-3 flex items-center gap-2">
-                <h2 className="flex-1 font-titulo text-xl font-bold">{c.nombre}</h2>
+                <h2 className="flex-1 font-titulo text-xl font-medium">{c.nombre}</h2>
                 <button className="btn-secundario py-1.5 text-sm" onClick={() => abrirProducto({ categoria_id: c.id })}>+ Producto</button>
                 <button className="text-sm text-suave underline" onClick={() => {
                   if (confirm(`¿Borrar la categoría “${c.nombre}” y todos sus productos?`)) ejecutar(supabase().from("categorias").delete().eq("id", c.id));
@@ -135,7 +135,7 @@ export default function Carta() {
       </div>
 
       <aside>
-        <h2 className="mt-1 font-titulo text-xl font-bold">Opciones</h2>
+        <h2 className="mt-1 font-titulo text-xl font-medium">Opciones</h2>
         <p className="mb-3 mt-1 text-sm text-suave">Listas que el cliente elige al pedir: sabores, leche, tamaño, extras. Después marcás en cada producto cuáles usa.</p>
         <div className="space-y-4">
           {grupos.map((g) => (
@@ -154,7 +154,7 @@ export default function Carta() {
       {editando && (
         <div className="fixed inset-0 z-30 grid place-items-center bg-tinta/30 p-4" onClick={() => setEditando(null)}>
           <form onSubmit={guardarProducto} onClick={(e) => e.stopPropagation()} className="tarjeta max-h-[90dvh] w-full max-w-md overflow-y-auto bg-crema p-5">
-            <h2 className="mb-4 font-titulo text-xl font-bold">{editando.id ? "Editar producto" : "Nuevo producto"}</h2>
+            <h2 className="mb-4 font-titulo text-xl font-medium">{editando.id ? "Editar producto" : "Nuevo producto"}</h2>
             <label className="etiqueta" htmlFor="p-nombre">Nombre</label>
             <input id="p-nombre" required className="campo" value={editando.nombre ?? ""} onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} />
             <label className="etiqueta mt-3" htmlFor="p-desc">Descripción</label>

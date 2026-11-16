@@ -40,7 +40,7 @@ export default function Reportes() {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <h1 className="mr-auto font-titulo text-2xl font-bold">Reportes</h1>
+        <h1 className="mr-auto font-titulo text-2xl font-medium">Reportes</h1>
         {(Object.keys(RANGOS) as Rango[]).map((r) => (
           <button key={r} onClick={() => setRango(r)}
             className={`rounded-full px-3 py-1.5 text-sm font-semibold ${rango === r ? "bg-choco text-white" : "border border-borde bg-papel"}`}>{RANGOS[r]}</button>
@@ -73,7 +73,7 @@ function Dato({ titulo, valor, detalle }: { titulo: string; valor: string; detal
   return (
     <div className="tarjeta p-4">
       <p className="text-sm text-suave">{titulo}</p>
-      <p className="mt-1 font-titulo text-2xl font-bold tabular-nums">{valor}</p>
+      <p className="mt-1 font-titulo text-2xl font-medium tabular-nums">{valor}</p>
       {detalle && <p className="mt-1 text-xs capitalize text-suave">{detalle}</p>}
     </div>
   );
@@ -84,7 +84,7 @@ function Ranking({ titulo, filas, max, vacio = "Sin ventas en este período." }:
 }) {
   return (
     <section className="tarjeta p-5">
-      <h2 className="mb-3 font-titulo text-lg font-bold">{titulo}</h2>
+      <h2 className="mb-3 font-titulo text-lg font-medium">{titulo}</h2>
       {filas.length === 0 ? <p className="text-sm text-suave">{vacio}</p> : (
         <ol className="space-y-2.5">
           {filas.slice(0, 15).map((f) => (

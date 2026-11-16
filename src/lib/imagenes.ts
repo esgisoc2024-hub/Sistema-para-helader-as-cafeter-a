@@ -27,6 +27,29 @@ export async function subirImagen(negocioId: string, archivo: File, tipo: "logo"
   return sb.storage.from(BUCKET).getPublicUrl(ruta).data.publicUrl;
 }
 
+const VIDEO_MAX = 15 * 1024 * 1024;
+
+/** Portada del local: una foto (se comprime) o un video corto (hasta 15 MB, sin sonido en la carta). */
+export async function subirPortada(negocioId: string, archivo: File): Promise<{ url: string; tipo: "imagen" | "video" }> {
+  const sb = supabase();
+  if (archivo.type.startsWith("image/")) {
+    const blob = await comprimir(archivo, 1600);
+    const ruta = `${negocioId}/portada-${crypto.randomUUID()}.webp`;
+    const { error } = await sb.storage.from(BUCKET).upload(ruta, blob, { contentType: "image/webp", cacheControl: "31536000" });
+    if (error) throw error;
+    return { url: sb.storage.from(BUCKET).getPublicUrl(ruta).data.publicUrl, tipo: "imagen" };
+  }
+  if (archivo.type.startsWith("video/")) {
+    if (archivo.size > VIDEO_MAX) throw new Error("El video pesa más de 15 MB. Usá uno más corto (5 a 10 segundos).");
+    const ext = archivo.type === "video/webm" ? "webm" : archivo.type === "video/quicktime" ? "mov" : "mp4";
+    const ruta = `${negocioId}/portada-${crypto.randomUUID()}.${ext}`;
+    const { error } = await sb.storage.from(BUCKET).upload(ruta, archivo, { contentType: archivo.type, cacheControl: "31536000" });
+    if (error) throw error;
+    return { url: sb.storage.from(BUCKET).getPublicUrl(ruta).data.publicUrl, tipo: "video" };
+  }
+  throw new Error("El archivo tiene que ser una foto o un video.");
+}
+
 /** Borra una imagen subida por nosotros (ignora links externos). */
 export async function borrarImagen(url: string | null | undefined) {
   const marca = `/object/public/${BUCKET}/`;

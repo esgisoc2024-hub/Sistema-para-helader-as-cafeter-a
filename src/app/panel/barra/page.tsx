@@ -53,7 +53,7 @@ export default function Barra() {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <h1 className="font-titulo text-2xl font-bold">Comandas</h1>
+        <h1 className="font-titulo text-2xl font-medium">Comandas</h1>
         <span className="text-sm text-suave">{pedidos.length} en curso</span>
         <div className="ml-auto flex gap-2">
           <button className="btn-secundario py-2 text-sm" onClick={() => setSonido(!sonido)} aria-pressed={sonido}>
@@ -81,7 +81,7 @@ export default function Barra() {
                     return (
                       <li key={p.id} className={`tarjeta p-3 ${demora ? "border-frutilla ring-2 ring-frutilla/30" : ""}`}>
                         <div className="flex items-baseline justify-between">
-                          <p className="font-titulo text-2xl font-bold">Mesa {p.numero_mesa}</p>
+                          <p className="font-titulo text-2xl font-medium">Mesa {p.numero_mesa}</p>
                           <p className={`text-sm font-semibold ${demora ? "text-frutilla-osc" : "text-suave"}`}>
                             {espera} min · {hora(p.creado_at)}
                           </p>

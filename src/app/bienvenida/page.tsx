@@ -30,7 +30,7 @@ export default function Bienvenida() {
   return (
     <main className="grid min-h-dvh place-items-center px-4">
       <form onSubmit={enviar} className="tarjeta w-full max-w-md p-6">
-        <h1 className="font-titulo text-2xl font-bold">Bienvenido</h1>
+        <h1 className="font-titulo text-2xl font-medium">Bienvenido</h1>
         <div className="mt-4 grid grid-cols-2 gap-1 rounded-full bg-borde/60 p-1 text-sm font-semibold">
           <button type="button" onClick={() => setModo("crear")} className={`rounded-full py-2 ${modo === "crear" ? "bg-papel" : "text-suave"}`}>Soy el dueño</button>
           <button type="button" onClick={() => setModo("unirse")} className={`rounded-full py-2 ${modo === "unirse" ? "bg-papel" : "text-suave"}`}>Soy del equipo</button>
