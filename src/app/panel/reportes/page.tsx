@@ -8,7 +8,7 @@ interface Reporte {
   ventas: number; por_medio: Record<string, number>; pedidos: number;
   espera_promedio_min: number | null; espera_max_min: number | null;
   productos: { nombre: string; unidades: number; importe: number }[];
-  sabores: { sabor: string; veces: number }[];
+  opciones: { grupo: string; nombre: string; veces: number }[];
 }
 
 const RANGOS = { hoy: "Hoy", ayer: "Ayer", semana: "Últimos 7 días", mes: "Últimos 30 días" } as const;
@@ -34,7 +34,8 @@ export default function Reportes() {
   useEffect(() => { cargar(); }, [cargar]);
 
   const maxProd = Math.max(1, ...(rep?.productos.map((p) => Number(p.unidades)) ?? []));
-  const maxSab = Math.max(1, ...(rep?.sabores.map((s) => Number(s.veces)) ?? []));
+  // Un ranking por grupo de opciones (Sabores, Leche, Tamaño…)
+  const grupos = [...new Set(rep?.opciones.map((o) => o.grupo) ?? [])];
 
   return (
     <div>
@@ -56,8 +57,11 @@ export default function Reportes() {
           </div>
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <Ranking titulo="Productos más vendidos" filas={rep.productos.map((p) => ({ nombre: p.nombre, valor: Number(p.unidades), extra: precio(p.importe) }))} max={maxProd} />
-            <Ranking titulo="Sabores más pedidos" filas={rep.sabores.map((s) => ({ nombre: s.sabor, valor: Number(s.veces) }))} max={maxSab}
-              vacio="Todavía no hay sabores pedidos en este período." />
+            {grupos.map((g) => {
+              const filas = rep.opciones.filter((o) => o.grupo === g).map((o) => ({ nombre: o.nombre, valor: Number(o.veces) }));
+              return <Ranking key={g} titulo={g === "Sabores" ? "Sabores más pedidos" : `${g}: lo más elegido`} filas={filas}
+                max={Math.max(1, ...filas.map((f) => f.valor))} />;
+            })}
           </div>
         </>
       )}

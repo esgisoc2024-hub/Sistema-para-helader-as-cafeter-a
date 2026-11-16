@@ -9,10 +9,13 @@ export interface Mesa { id: string; negocio_id: string; numero: number; codigo: 
 export interface Categoria { id: string; nombre: string; orden: number }
 export interface Producto {
   id: string; categoria_id: string; nombre: string; descripcion: string | null; precio: number;
-  foto_url: string | null; disponible: boolean; max_sabores: number; orden: number;
+  foto_url: string | null; disponible: boolean; orden: number;
 }
-export interface Sabor { id: string; nombre: string; disponible: boolean }
-export interface ItemPedido { id: string; nombre_producto: string; cantidad: number; precio_unitario: number; sabores: string[]; nota: string | null }
+export interface GrupoOpciones { id: string; nombre: string; orden: number }
+export interface Opcion { id: string; grupo_id: string; nombre: string; precio_extra: number; disponible: boolean; orden: number }
+export interface ProductoGrupo { producto_id: string; grupo_id: string; minimo: number; maximo: number; orden: number }
+export interface OpcionElegida { grupo: string; nombre: string; extra: number }
+export interface ItemPedido { id: string; nombre_producto: string; cantidad: number; precio_unitario: number; opciones: OpcionElegida[]; nota: string | null }
 export interface Pedido {
   id: string; mesa_id: string; cuenta_id: string; numero_mesa: number; estado: EstadoPedido; origen: "qr" | "mozo";
   total: number; creado_at: string; preparando_at: string | null; listo_at: string | null; entregado_at: string | null;
@@ -20,12 +23,18 @@ export interface Pedido {
 }
 
 // Lo que devuelve carta_mesa() para el cliente
+export interface GrupoPublico {
+  id: string; nombre: string; minimo: number; maximo: number;
+  opciones: { id: string; nombre: string; precio_extra: number }[];
+}
+export interface ProductoPublico {
+  id: string; nombre: string; descripcion: string | null; precio: number; foto_url: string | null; grupos: GrupoPublico[];
+}
 export interface CartaPublica {
   negocio: string; mesa: number;
-  categorias: { id: string; nombre: string; productos: { id: string; nombre: string; descripcion: string | null; precio: number; foto_url: string | null; max_sabores: number }[] }[];
-  sabores: { id: string; nombre: string }[];
+  categorias: { id: string; nombre: string; productos: ProductoPublico[] }[];
 }
 export interface EstadoMesaPublico {
   mesa: number; estado_mesa: EstadoMesa; llamado: boolean; total: number;
-  pedidos: { id: string; estado: EstadoPedido; creado_at: string; total: number; items: { nombre: string; cantidad: number; sabores: string[] }[] }[];
+  pedidos: { id: string; estado: EstadoPedido; creado_at: string; total: number; items: { nombre: string; cantidad: number; opciones: OpcionElegida[] }[] }[];
 }

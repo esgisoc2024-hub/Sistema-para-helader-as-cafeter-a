@@ -1,14 +1,15 @@
 "use client";
 
-import { use, useCallback, useEffect, useMemo, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { ETIQUETA_ESTADO, mensajeError, precio } from "@/lib/formato";
-import type { CartaPublica, EstadoMesaPublico } from "@/lib/tipos";
+import { ETIQUETA_ESTADO, mensajeError, precio, textoOpciones } from "@/lib/formato";
+import type { CartaPublica, EstadoMesaPublico, ProductoPublico } from "@/lib/tipos";
 
-type ProductoCarta = CartaPublica["categorias"][number]["productos"][number];
-interface LineaCarrito { clave: string; producto: ProductoCarta; cantidad: number; sabores: string[]; nota: string }
+interface OpcionCarrito { id: string; grupo: string; nombre: string; extra: number }
+interface LineaCarrito { clave: string; producto: ProductoPublico; cantidad: number; opciones: OpcionCarrito[]; nota: string }
+const precioLinea = (l: LineaCarrito) => Number(l.producto.precio) + l.opciones.reduce((s, o) => s + Number(o.extra), 0);
 
 const PASOS = ["nuevo", "preparando", "listo", "entregado"] as const;
 
@@ -20,7 +21,7 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
   const [estado, setEstado] = useState<EstadoMesaPublico | null>(null);
   const [vista, setVista] = useState<"carta" | "pedido">("carta");
   const [carrito, setCarrito] = useState<LineaCarrito[]>([]);
-  const [eligiendo, setEligiendo] = useState<ProductoCarta | null>(null);
+  const [eligiendo, setEligiendo] = useState<ProductoPublico | null>(null);
   const [verCarrito, setVerCarrito] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [aviso, setAviso] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
@@ -45,12 +46,12 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
   // El carrito sobrevive a un refresco de la página.
   useEffect(() => {
     try {
-      const guardado = localStorage.getItem(`carrito-${codigo}`);
+      const guardado = localStorage.getItem(`carrito2-${codigo}`);
       if (guardado) setCarrito(JSON.parse(guardado));
     } catch {}
   }, [codigo]);
   useEffect(() => {
-    try { localStorage.setItem(`carrito-${codigo}`, JSON.stringify(carrito)); } catch {}
+    try { localStorage.setItem(`carrito2-${codigo}`, JSON.stringify(carrito)); } catch {}
   }, [carrito, codigo]);
 
   useEffect(() => {
@@ -59,16 +60,15 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
     return () => clearTimeout(t);
   }, [aviso]);
 
-  const nombreSabor = useMemo(() => new Map(carta?.sabores.map((s) => [s.id, s.nombre]) ?? []), [carta]);
-  const totalCarrito = carrito.reduce((s, l) => s + l.producto.precio * l.cantidad, 0);
+  const totalCarrito = carrito.reduce((s, l) => s + precioLinea(l) * l.cantidad, 0);
   const unidades = carrito.reduce((s, l) => s + l.cantidad, 0);
 
-  function agregar(producto: ProductoCarta, sabores: string[], nota: string) {
-    const clave = `${producto.id}|${[...sabores].sort().join(",")}|${nota}`;
+  function agregar(producto: ProductoPublico, opciones: OpcionCarrito[], nota: string) {
+    const clave = `${producto.id}|${opciones.map((o) => o.id).sort().join(",")}|${nota}`;
     setCarrito((c) => {
       const existe = c.find((l) => l.clave === clave);
       if (existe) return c.map((l) => (l.clave === clave ? { ...l, cantidad: l.cantidad + 1 } : l));
-      return [...c, { clave, producto, cantidad: 1, sabores, nota }];
+      return [...c, { clave, producto, cantidad: 1, opciones, nota }];
     });
     setEligiendo(null);
     setAviso({ tipo: "ok", texto: `${producto.nombre} agregado` });
@@ -84,7 +84,7 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
 
   async function enviar() {
     setEnviando(true);
-    const items = carrito.map((l) => ({ producto_id: l.producto.id, cantidad: l.cantidad, sabores: l.sabores, nota: l.nota }));
+    const items = carrito.map((l) => ({ producto_id: l.producto.id, cantidad: l.cantidad, opciones: l.opciones.map((o) => o.id), nota: l.nota }));
     const { error } = await supabase().rpc("crear_pedido", { p_codigo: codigo, p_items: items, p_origen: esMozo ? "mozo" : "qr" });
     setEnviando(false);
     if (error) {
@@ -150,7 +150,7 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
               <ul className="space-y-3">
                 {c.productos.map((p) => (
                   <li key={p.id}>
-                    <button onClick={() => (p.max_sabores > 0 ? setEligiendo(p) : agregar(p, [], ""))}
+                    <button onClick={() => (p.grupos.length > 0 ? setEligiendo(p) : agregar(p, [], ""))}
                       className="tarjeta flex w-full items-center gap-3 p-3 text-left active:bg-crema">
                       {p.foto_url && (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -192,7 +192,7 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
               )}
               <ul className="mt-3 space-y-1 text-sm">
                 {p.items.map((it, j) => (
-                  <li key={j}>{it.cantidad} × {it.nombre}{it.sabores.length > 0 && <span className="text-suave"> ({it.sabores.join(", ")})</span>}</li>
+                  <li key={j}>{it.cantidad} × {it.nombre}{it.opciones.length > 0 && <span className="text-suave"> ({textoOpciones(it.opciones)})</span>}</li>
                 ))}
               </ul>
             </article>
@@ -220,7 +220,7 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
       )}
 
       {eligiendo && (
-        <ElegirSabores producto={eligiendo} sabores={carta.sabores} onCerrar={() => setEligiendo(null)} onAgregar={agregar} />
+        <ElegirOpciones producto={eligiendo} onCerrar={() => setEligiendo(null)} onAgregar={agregar} />
       )}
 
       {verCarrito && (
@@ -230,9 +230,9 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
               <li key={l.clave} className="flex items-center gap-3 py-3">
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{l.producto.nombre}</p>
-                  {l.sabores.length > 0 && <p className="text-sm text-suave">{l.sabores.map((s) => nombreSabor.get(s) ?? "—").join(", ")}</p>}
+                  {l.opciones.length > 0 && <p className="text-sm text-suave">{textoOpciones(l.opciones)}</p>}
                   {l.nota && <p className="text-sm italic text-suave">“{l.nota}”</p>}
-                  <p className="text-sm">{precio(l.producto.precio * l.cantidad)}</p>
+                  <p className="text-sm">{precio(precioLinea(l) * l.cantidad)}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button aria-label="Quitar uno" className="h-9 w-9 rounded-full border border-borde" onClick={() => cambiarCantidad(l.clave, -1)}>−</button>
@@ -257,39 +257,65 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
   );
 }
 
-function ElegirSabores({ producto, sabores, onCerrar, onAgregar }: {
-  producto: ProductoCarta; sabores: CartaPublica["sabores"];
-  onCerrar: () => void; onAgregar: (p: ProductoCarta, sabores: string[], nota: string) => void;
+function ElegirOpciones({ producto, onCerrar, onAgregar }: {
+  producto: ProductoPublico; onCerrar: () => void;
+  onAgregar: (p: ProductoPublico, opciones: OpcionCarrito[], nota: string) => void;
 }) {
-  const [elegidos, setElegidos] = useState<string[]>([]);
+  const [elegidas, setElegidas] = useState<Record<string, string[]>>({});
   const [nota, setNota] = useState("");
-  const lleno = elegidos.length >= producto.max_sabores;
 
-  function alternar(id: string) {
-    setElegidos((e) => (e.includes(id) ? e.filter((x) => x !== id) : lleno ? e : [...e, id]));
+  function alternar(grupoId: string, maximo: number, id: string) {
+    setElegidas((e) => {
+      const actual = e[grupoId] ?? [];
+      if (actual.includes(id)) return { ...e, [grupoId]: actual.filter((x) => x !== id) };
+      if (maximo === 1) return { ...e, [grupoId]: [id] }; // elección única: reemplaza
+      if (actual.length >= maximo) return e;
+      return { ...e, [grupoId]: [...actual, id] };
+    });
   }
+
+  const completos = producto.grupos.every((g) => (elegidas[g.id]?.length ?? 0) >= g.minimo);
+  const seleccion: OpcionCarrito[] = producto.grupos.flatMap((g) =>
+    g.opciones.filter((o) => elegidas[g.id]?.includes(o.id)).map((o) => ({ id: o.id, grupo: g.nombre, nombre: o.nombre, extra: Number(o.precio_extra) })));
+  const total = Number(producto.precio) + seleccion.reduce((s, o) => s + o.extra, 0);
 
   return (
     <Hoja onCerrar={onCerrar} titulo={producto.nombre}>
-      <p className="mb-3 text-sm text-suave">Elegí hasta {producto.max_sabores} sabor{producto.max_sabores > 1 ? "es" : ""} · {elegidos.length} elegido{elegidos.length === 1 ? "" : "s"}</p>
-      <div className="grid grid-cols-2 gap-2">
-        {sabores.map((s) => {
-          const activo = elegidos.includes(s.id);
+      <div className="space-y-5">
+        {producto.grupos.map((g) => {
+          const n = elegidas[g.id]?.length ?? 0;
+          const lleno = g.maximo > 1 && n >= g.maximo;
+          const regla = g.maximo === 1 ? (g.minimo ? "Elegí 1" : "Opcional, elegí 1")
+            : g.minimo ? `Elegí de ${g.minimo} a ${g.maximo}` : `Opcional, hasta ${g.maximo}`;
           return (
-            <button key={s.id} onClick={() => alternar(s.id)} aria-pressed={activo}
-              disabled={!activo && lleno}
-              className={`rounded-xl border px-3 py-3 text-left text-sm font-medium transition disabled:opacity-40 ${
-                activo ? "border-frutilla bg-frutilla/10 text-frutilla-osc" : "border-borde bg-papel"}`}>
-              {s.nombre}
-            </button>
+            <fieldset key={g.id}>
+              <legend className="mb-2 flex w-full items-baseline justify-between">
+                <span className="font-semibold">{g.nombre}</span>
+                <span className={`text-sm ${n < g.minimo ? "font-semibold text-frutilla-osc" : "text-suave"}`}>{regla}{g.maximo > 1 && ` · ${n}`}</span>
+              </legend>
+              <div className="grid grid-cols-2 gap-2">
+                {g.opciones.map((o) => {
+                  const activo = elegidas[g.id]?.includes(o.id) ?? false;
+                  return (
+                    <button key={o.id} type="button" onClick={() => alternar(g.id, g.maximo, o.id)} aria-pressed={activo}
+                      disabled={!activo && lleno}
+                      className={`rounded-xl border px-3 py-3 text-left text-sm font-medium transition disabled:opacity-40 ${
+                        activo ? "border-frutilla bg-frutilla/10 text-frutilla-osc" : "border-borde bg-papel"}`}>
+                      {o.nombre}
+                      {Number(o.precio_extra) > 0 && <span className="block text-xs font-normal text-suave">+ {precio(o.precio_extra)}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              {g.opciones.length === 0 && <p className="text-sm text-suave">No hay opciones disponibles en este momento.</p>}
+            </fieldset>
           );
         })}
       </div>
-      {sabores.length === 0 && <p className="text-sm text-suave">No hay sabores disponibles en este momento.</p>}
-      <label className="etiqueta mt-4" htmlFor="nota">Aclaración (opcional)</label>
-      <input id="nota" className="campo" maxLength={120} value={nota} onChange={(e) => setNota(e.target.value)} placeholder="Ej: sin cucurucho bañado" />
-      <button className="btn-primario mt-4 w-full" disabled={elegidos.length === 0} onClick={() => onAgregar(producto, elegidos, nota.trim())}>
-        Agregar · {precio(producto.precio)}
+      <label className="etiqueta mt-5" htmlFor="nota">Aclaración (opcional)</label>
+      <input id="nota" className="campo" maxLength={120} value={nota} onChange={(e) => setNota(e.target.value)} placeholder="Ej: bien caliente" />
+      <button className="btn-primario mt-4 w-full" disabled={!completos} onClick={() => onAgregar(producto, seleccion, nota.trim())}>
+        Agregar · {precio(total)}
       </button>
     </Hoja>
   );

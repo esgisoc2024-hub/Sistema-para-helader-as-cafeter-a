@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { ETIQUETA_ESTADO, hora, mensajeError, minutosDesde, precio } from "@/lib/formato";
+import { ETIQUETA_ESTADO, hora, mensajeError, minutosDesde, precio, textoOpciones } from "@/lib/formato";
 import { usePanel } from "@/components/PanelContexto";
 import type { MedioPago, Mesa, Pedido } from "@/lib/tipos";
 
@@ -136,7 +136,7 @@ function DetalleMesa({ mesa, pedidos, total, onCerrar, onCambio }: {
               <ul className="mt-2 space-y-1">
                 {p.items_pedido?.map((it) => (
                   <li key={it.id} className="flex justify-between gap-3">
-                    <span>{it.cantidad} × {it.nombre_producto}{it.sabores.length > 0 && <span className="text-sm text-suave"> ({it.sabores.join(", ")})</span>}</span>
+                    <span>{it.cantidad} × {it.nombre_producto}{it.opciones.length > 0 && <span className="text-sm text-suave"> ({textoOpciones(it.opciones)})</span>}</span>
                     <span className="shrink-0">{precio(it.cantidad * it.precio_unitario)}</span>
                   </li>
                 ))}

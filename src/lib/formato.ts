@@ -12,8 +12,8 @@ export const hora = (iso: string) =>
 export function mensajeError(e: unknown): string {
   const m = (e as { message?: string })?.message ?? String(e);
   if (m.startsWith("sin_stock:")) return `Se acaba de agotar: ${m.split(":")[1]}. Sacalo del pedido.`;
-  if (m.startsWith("demasiados_sabores")) return "Elegiste más sabores de los permitidos.";
-  if (m.includes("sabor_sin_stock")) return "Uno de los sabores se acaba de agotar. Elegí otro.";
+  if (m.startsWith("opciones_invalidas:")) return `Revisá lo elegido en “${m.split(":")[1]}”.`;
+  if (m.includes("opcion_sin_stock")) return "Una de las opciones se acaba de agotar. Elegí otra.";
   if (m.includes("demasiados_pedidos")) return "Hiciste muchos pedidos seguidos. Esperá un momento.";
   if (m.includes("mesa_invalida")) return "Este QR no corresponde a una mesa activa.";
   if (m.includes("codigo_invalido")) return "El código del equipo no existe. Pedíselo al dueño.";
@@ -22,6 +22,11 @@ export function mensajeError(e: unknown): string {
   if (m.includes("Invalid login credentials")) return "Email o contraseña incorrectos.";
   if (m.includes("User already registered")) return "Ese email ya tiene cuenta. Ingresá.";
   return "Algo salió mal. Probá de nuevo.";
+}
+
+// "Chocolate · Frutilla · Leche: De almendras" — los sabores van solos, el resto con el nombre del grupo.
+export function textoOpciones(ops: { grupo: string; nombre: string }[]) {
+  return ops.map((o) => (o.grupo === "Sabores" ? o.nombre : `${o.grupo}: ${o.nombre}`)).join(" · ");
 }
 
 export const ETIQUETA_ESTADO: Record<string, string> = {

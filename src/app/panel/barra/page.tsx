@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { hora, minutosDesde } from "@/lib/formato";
+import { hora, minutosDesde, textoOpciones } from "@/lib/formato";
 import { usePanel } from "@/components/PanelContexto";
 import { StockRapido } from "@/components/StockRapido";
 import type { EstadoPedido, Pedido } from "@/lib/tipos";
@@ -91,7 +91,7 @@ export default function Barra() {
                           {p.items_pedido?.map((it) => (
                             <li key={it.id} className="leading-snug">
                               <span className="font-semibold">{it.cantidad} × {it.nombre_producto}</span>
-                              {it.sabores.length > 0 && <span className="block text-sm text-choco">{it.sabores.join(" · ")}</span>}
+                              {it.opciones.length > 0 && <span className="block text-sm text-choco">{textoOpciones(it.opciones)}</span>}
                               {it.nota && <span className="block text-sm italic text-frutilla-osc">“{it.nota}”</span>}
                             </li>
                           ))}

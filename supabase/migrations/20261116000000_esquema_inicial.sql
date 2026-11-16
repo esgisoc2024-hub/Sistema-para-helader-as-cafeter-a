@@ -60,15 +60,39 @@ create table public.productos (
   precio numeric(12, 2) not null check (precio >= 0),
   foto_url text,
   disponible boolean not null default true,
-  max_sabores int not null default 0 check (max_sabores between 0 and 6),
   orden int not null default 0
 );
 
-create table public.sabores (
+-- Opciones por producto. Un grupo (ej: "Sabores", "Leche", "Tamaño") es una lista reutilizable;
+-- cada producto elige qué grupos usa y cuántas opciones se pueden elegir de cada uno.
+-- Así "Sabores" es una sola lista: marcar "Chocolate" sin stock lo saca de todos los productos.
+create table public.grupos_opciones (
   id uuid primary key default gen_random_uuid(),
   negocio_id uuid not null references public.negocios (id) on delete cascade,
   nombre text not null,
-  disponible boolean not null default true
+  orden int not null default 0
+);
+
+create table public.opciones (
+  id uuid primary key default gen_random_uuid(),
+  negocio_id uuid not null references public.negocios (id) on delete cascade,
+  grupo_id uuid not null references public.grupos_opciones (id) on delete cascade,
+  nombre text not null,
+  precio_extra numeric(12, 2) not null default 0 check (precio_extra >= 0),
+  disponible boolean not null default true,
+  orden int not null default 0
+);
+create index opciones_grupo on public.opciones (grupo_id);
+
+create table public.producto_grupos (
+  negocio_id uuid not null references public.negocios (id) on delete cascade,
+  producto_id uuid not null references public.productos (id) on delete cascade,
+  grupo_id uuid not null references public.grupos_opciones (id) on delete cascade,
+  minimo int not null default 1 check (minimo >= 0),
+  maximo int not null default 1 check (maximo between 1 and 10),
+  orden int not null default 0,
+  primary key (producto_id, grupo_id),
+  check (minimo <= maximo)
 );
 
 create table public.pedidos (
@@ -96,8 +120,8 @@ create table public.items_pedido (
   producto_id uuid references public.productos (id) on delete set null,
   nombre_producto text not null,       -- copiado al momento del pedido
   cantidad int not null check (cantidad between 1 and 50),
-  precio_unitario numeric(12, 2) not null, -- copiado al momento del pedido
-  sabores text[] not null default '{}',
+  precio_unitario numeric(12, 2) not null, -- base + extras, copiado al momento del pedido
+  opciones jsonb not null default '[]',    -- [{grupo, nombre, extra}] copiado al momento del pedido
   nota text
 );
 create index items_pedido_pedido on public.items_pedido (pedido_id);
@@ -146,7 +170,9 @@ alter table public.mesas enable row level security;
 alter table public.cuentas enable row level security;
 alter table public.categorias enable row level security;
 alter table public.productos enable row level security;
-alter table public.sabores enable row level security;
+alter table public.grupos_opciones enable row level security;
+alter table public.opciones enable row level security;
+alter table public.producto_grupos enable row level security;
 alter table public.pedidos enable row level security;
 alter table public.items_pedido enable row level security;
 alter table public.pagos enable row level security;
@@ -181,10 +207,22 @@ create policy productos_duenio on public.productos for all to authenticated
   using (negocio_id = public.mi_negocio() and public.mi_rol() = 'duenio')
   with check (negocio_id = public.mi_negocio() and public.mi_rol() = 'duenio');
 
-create policy sabores_ver on public.sabores for select to authenticated using (negocio_id = public.mi_negocio());
-create policy sabores_duenio on public.sabores for all to authenticated
+create policy grupos_ver on public.grupos_opciones for select to authenticated using (negocio_id = public.mi_negocio());
+create policy grupos_duenio on public.grupos_opciones for all to authenticated
   using (negocio_id = public.mi_negocio() and public.mi_rol() = 'duenio')
   with check (negocio_id = public.mi_negocio() and public.mi_rol() = 'duenio');
+
+create policy opciones_ver on public.opciones for select to authenticated using (negocio_id = public.mi_negocio());
+create policy opciones_duenio on public.opciones for all to authenticated
+  using (negocio_id = public.mi_negocio() and public.mi_rol() = 'duenio')
+  with check (negocio_id = public.mi_negocio() and public.mi_rol() = 'duenio');
+
+create policy producto_grupos_ver on public.producto_grupos for select to authenticated using (negocio_id = public.mi_negocio());
+create policy producto_grupos_duenio on public.producto_grupos for all to authenticated
+  using (negocio_id = public.mi_negocio() and public.mi_rol() = 'duenio')
+  with check (negocio_id = public.mi_negocio() and public.mi_rol() = 'duenio'
+              and exists (select 1 from public.productos p where p.id = producto_id and p.negocio_id = public.mi_negocio())
+              and exists (select 1 from public.grupos_opciones g where g.id = grupo_id and g.negocio_id = public.mi_negocio()));
 
 create policy cuentas_ver on public.cuentas for select to authenticated using (negocio_id = public.mi_negocio());
 
@@ -207,8 +245,8 @@ begin
   if v_neg is null then raise exception 'sin_permiso'; end if;
   if p_tipo = 'producto' then
     update productos set disponible = p_disponible where id = p_id and negocio_id = v_neg;
-  elsif p_tipo = 'sabor' then
-    update sabores set disponible = p_disponible where id = p_id and negocio_id = v_neg;
+  elsif p_tipo = 'opcion' then
+    update opciones set disponible = p_disponible where id = p_id and negocio_id = v_neg;
   else
     raise exception 'tipo_invalido';
   end if;
@@ -244,29 +282,53 @@ end $$;
 -- Carta de ejemplo para que el dueño vea el sistema funcionando en la primera visita.
 create or replace function public.cargar_carta_ejemplo(p_negocio uuid)
 returns void language plpgsql security definer set search_path = public as $$
-declare c_hel uuid; c_caf uuid; c_pas uuid;
+declare
+  c_hel uuid; c_caf uuid; c_pas uuid;
+  g_sab uuid; g_ext uuid; g_tam uuid; g_lec uuid; g_fru uuid;
 begin
   insert into categorias (negocio_id, nombre, orden) values (p_negocio, 'Helados', 1) returning id into c_hel;
   insert into categorias (negocio_id, nombre, orden) values (p_negocio, 'Cafetería', 2) returning id into c_caf;
   insert into categorias (negocio_id, nombre, orden) values (p_negocio, 'Pastelería', 3) returning id into c_pas;
 
-  insert into productos (negocio_id, categoria_id, nombre, descripcion, precio, max_sabores, orden) values
-    (p_negocio, c_hel, 'Cucurucho', 'Hasta 2 sabores', 3500, 2, 1),
-    (p_negocio, c_hel, 'Vasito 1/4 kg', 'Hasta 3 sabores', 6000, 3, 2),
-    (p_negocio, c_hel, 'Copa helada', 'Helado, crema y salsa a elección', 8500, 3, 3),
-    (p_negocio, c_caf, 'Café', null, 2800, 0, 1),
-    (p_negocio, c_caf, 'Café con leche', null, 3300, 0, 2),
-    (p_negocio, c_caf, 'Submarino', null, 4200, 0, 3),
-    (p_negocio, c_caf, 'Licuado', 'Banana, frutilla o durazno', 5000, 0, 4),
-    (p_negocio, c_pas, 'Medialunas x2', null, 2400, 0, 1),
-    (p_negocio, c_pas, 'Croissant', null, 3000, 0, 2),
-    (p_negocio, c_pas, 'Tostado de jamón y queso', null, 6500, 0, 3);
+  insert into grupos_opciones (negocio_id, nombre, orden) values (p_negocio, 'Sabores', 1) returning id into g_sab;
+  insert into grupos_opciones (negocio_id, nombre, orden) values (p_negocio, 'Extras', 2) returning id into g_ext;
+  insert into grupos_opciones (negocio_id, nombre, orden) values (p_negocio, 'Tamaño', 3) returning id into g_tam;
+  insert into grupos_opciones (negocio_id, nombre, orden) values (p_negocio, 'Leche', 4) returning id into g_lec;
+  insert into grupos_opciones (negocio_id, nombre, orden) values (p_negocio, 'Fruta', 5) returning id into g_fru;
 
-  insert into sabores (negocio_id, nombre) values
-    (p_negocio, 'Dulce de leche'), (p_negocio, 'Dulce de leche granizado'),
-    (p_negocio, 'Chocolate'), (p_negocio, 'Chocolate amargo'),
-    (p_negocio, 'Frutilla'), (p_negocio, 'Limón'), (p_negocio, 'Vainilla'),
-    (p_negocio, 'Sambayón'), (p_negocio, 'Menta granizada'), (p_negocio, 'Banana split');
+  insert into opciones (negocio_id, grupo_id, nombre, precio_extra, orden)
+  select p_negocio, g_sab, n, 0, o from unnest(array['Dulce de leche', 'Dulce de leche granizado', 'Chocolate',
+    'Chocolate amargo', 'Frutilla', 'Limón', 'Vainilla', 'Sambayón', 'Menta granizada', 'Banana split']) with ordinality t(n, o);
+  insert into opciones (negocio_id, grupo_id, nombre, precio_extra, orden) values
+    (p_negocio, g_ext, 'Crema', 500, 1), (p_negocio, g_ext, 'Salsa de chocolate', 400, 2), (p_negocio, g_ext, 'Almendras', 600, 3),
+    (p_negocio, g_tam, 'Chico', 0, 1), (p_negocio, g_tam, 'Grande', 900, 2),
+    (p_negocio, g_lec, 'Entera', 0, 1), (p_negocio, g_lec, 'Descremada', 0, 2), (p_negocio, g_lec, 'De almendras', 700, 3),
+    (p_negocio, g_fru, 'Banana', 0, 1), (p_negocio, g_fru, 'Frutilla', 0, 2), (p_negocio, g_fru, 'Durazno', 0, 3);
+
+  insert into productos (negocio_id, categoria_id, nombre, descripcion, precio, orden) values
+    (p_negocio, c_hel, 'Cucurucho', 'Hasta 2 sabores', 3500, 1),
+    (p_negocio, c_hel, 'Vasito 1/4 kg', 'Hasta 3 sabores', 6000, 2),
+    (p_negocio, c_hel, 'Copa helada', 'Helado con extras a elección', 8500, 3),
+    (p_negocio, c_caf, 'Café', null, 2800, 1),
+    (p_negocio, c_caf, 'Café con leche', null, 3300, 2),
+    (p_negocio, c_caf, 'Submarino', null, 4200, 3),
+    (p_negocio, c_caf, 'Licuado', null, 5000, 4),
+    (p_negocio, c_pas, 'Medialunas x2', null, 2400, 1),
+    (p_negocio, c_pas, 'Croissant', null, 3000, 2),
+    (p_negocio, c_pas, 'Tostado de jamón y queso', null, 6500, 3);
+
+  insert into producto_grupos (negocio_id, producto_id, grupo_id, minimo, maximo, orden)
+  select p_negocio, p.id, g.grupo, g.mn, g.mx, g.o
+  from productos p join (values
+    ('Cucurucho', g_sab, 1, 2, 1),
+    ('Vasito 1/4 kg', g_sab, 1, 3, 1),
+    ('Copa helada', g_sab, 1, 3, 1), ('Copa helada', g_ext, 0, 3, 2),
+    ('Café', g_tam, 1, 1, 1),
+    ('Café con leche', g_tam, 1, 1, 1), ('Café con leche', g_lec, 1, 1, 2),
+    ('Submarino', g_lec, 1, 1, 1),
+    ('Licuado', g_fru, 1, 1, 1), ('Licuado', g_lec, 1, 1, 2)
+  ) as g(nombre, grupo, mn, mx, o) on g.nombre = p.nombre
+  where p.negocio_id = p_negocio;
 
   insert into mesas (negocio_id, numero) select p_negocio, g from generate_series(1, 8) g;
 end $$;
@@ -288,24 +350,35 @@ begin
         'id', c.id, 'nombre', c.nombre,
         'productos', (
           select coalesce(jsonb_agg(jsonb_build_object(
-            'id', p.id, 'nombre', p.nombre, 'descripcion', p.descripcion, 'precio', p.precio,
-            'foto_url', p.foto_url, 'max_sabores', p.max_sabores) order by p.orden, p.nombre), '[]'::jsonb)
-          from productos p where p.categoria_id = c.id and p.disponible)
+            'id', p.id, 'nombre', p.nombre, 'descripcion', p.descripcion, 'precio', p.precio, 'foto_url', p.foto_url,
+            'grupos', (
+              select coalesce(jsonb_agg(jsonb_build_object(
+                'id', g.id, 'nombre', g.nombre, 'minimo', pg.minimo, 'maximo', pg.maximo,
+                'opciones', (select coalesce(jsonb_agg(jsonb_build_object('id', o.id, 'nombre', o.nombre, 'precio_extra', o.precio_extra)
+                              order by o.orden, o.nombre), '[]'::jsonb)
+                             from opciones o where o.grupo_id = g.id and o.disponible)
+              ) order by pg.orden, g.nombre), '[]'::jsonb)
+              from producto_grupos pg join grupos_opciones g on g.id = pg.grupo_id
+              where pg.producto_id = p.id)
+          ) order by p.orden, p.nombre), '[]'::jsonb)
+          from productos p
+          where p.categoria_id = c.id and p.disponible
+            -- se oculta si un grupo obligatorio se quedó sin opciones suficientes
+            and not exists (
+              select 1 from producto_grupos pg where pg.producto_id = p.id and pg.minimo > 0
+                and (select count(*) from opciones o where o.grupo_id = pg.grupo_id and o.disponible) < pg.minimo))
       ) order by c.orden, c.nombre)
-      from categorias c where c.negocio_id = v_mesa.negocio_id), '[]'::jsonb),
-    'sabores', coalesce((
-      select jsonb_agg(jsonb_build_object('id', s.id, 'nombre', s.nombre) order by s.nombre)
-      from sabores s where s.negocio_id = v_mesa.negocio_id and s.disponible), '[]'::jsonb)
+      from categorias c where c.negocio_id = v_mesa.negocio_id), '[]'::jsonb)
   ) into v_res;
   return v_res;
 end $$;
 
--- p_items: [{ "producto_id": uuid, "cantidad": int, "sabores": [uuid], "nota": text }]
+-- p_items: [{ "producto_id": uuid, "cantidad": int, "opciones": [uuid], "nota": text }]
 create or replace function public.crear_pedido(p_codigo text, p_items jsonb, p_origen text default 'qr')
 returns uuid language plpgsql security definer set search_path = public as $$
 declare
   v_mesa mesas; v_cuenta uuid; v_pedido uuid; v_total numeric := 0;
-  it jsonb; v_prod productos; v_cant int; v_sabores text[]; v_n_sab int; v_n_ok int;
+  it jsonb; v_prod productos; v_cant int; v_ids uuid[]; v_n_ok int; v_extra numeric; v_ops jsonb; v_mal text;
 begin
   if p_origen not in ('qr', 'mozo') then raise exception 'origen_invalido'; end if;
   if p_origen = 'mozo' and public.mi_negocio() is null then raise exception 'sin_permiso'; end if;
@@ -337,20 +410,33 @@ begin
     v_cant := coalesce((it->>'cantidad')::int, 1);
     if v_cant < 1 or v_cant > 50 then raise exception 'cantidad_invalida'; end if;
 
-    v_n_sab := coalesce(jsonb_array_length(it->'sabores'), 0);
-    if v_n_sab > v_prod.max_sabores then raise exception 'demasiados_sabores:%', v_prod.nombre; end if;
-    select array_agg(s.nombre order by s.nombre), count(*) into v_sabores, v_n_ok
-      from sabores s
-      where s.negocio_id = v_mesa.negocio_id and s.disponible
-        and s.id in (select (x #>> '{}')::uuid from jsonb_array_elements(coalesce(it->'sabores', '[]')) x);
-    if v_n_ok <> (select count(distinct x) from jsonb_array_elements(coalesce(it->'sabores', '[]')) x) then
-      raise exception 'sabor_sin_stock';
-    end if;
+    select coalesce(array_agg(distinct (x #>> '{}')::uuid), '{}') into v_ids
+      from jsonb_array_elements(coalesce(it->'opciones', '[]')) x;
 
-    insert into items_pedido (negocio_id, pedido_id, producto_id, nombre_producto, cantidad, precio_unitario, sabores, nota)
-    values (v_mesa.negocio_id, v_pedido, v_prod.id, v_prod.nombre, v_cant, v_prod.precio,
-            coalesce(v_sabores, '{}'), nullif(left(trim(it->>'nota'), 200), ''));
-    v_total := v_total + v_prod.precio * v_cant;
+    -- Cada opción elegida tiene que existir, estar disponible y pertenecer a un grupo de este producto.
+    select count(*), coalesce(sum(o.precio_extra), 0),
+           coalesce(jsonb_agg(jsonb_build_object('grupo', g.nombre, 'nombre', o.nombre, 'extra', o.precio_extra)
+                              order by pg.orden, o.orden, o.nombre), '[]')
+      into v_n_ok, v_extra, v_ops
+      from opciones o
+      join grupos_opciones g on g.id = o.grupo_id
+      join producto_grupos pg on pg.grupo_id = o.grupo_id and pg.producto_id = v_prod.id
+      where o.id = any(v_ids) and o.disponible;
+    if v_n_ok <> coalesce(array_length(v_ids, 1), 0) then raise exception 'opcion_sin_stock'; end if;
+
+    -- Cantidad elegida por grupo entre el mínimo y el máximo.
+    select g.nombre into v_mal
+      from producto_grupos pg join grupos_opciones g on g.id = pg.grupo_id
+      where pg.producto_id = v_prod.id
+        and (select count(*) from opciones o where o.grupo_id = pg.grupo_id and o.id = any(v_ids))
+            not between pg.minimo and pg.maximo
+      limit 1;
+    if v_mal is not null then raise exception 'opciones_invalidas:%', v_mal; end if;
+
+    insert into items_pedido (negocio_id, pedido_id, producto_id, nombre_producto, cantidad, precio_unitario, opciones, nota)
+    values (v_mesa.negocio_id, v_pedido, v_prod.id, v_prod.nombre, v_cant, v_prod.precio + v_extra,
+            v_ops, nullif(left(trim(it->>'nota'), 200), ''));
+    v_total := v_total + (v_prod.precio + v_extra) * v_cant;
   end loop;
 
   update pedidos set total = v_total where id = v_pedido;
@@ -374,7 +460,7 @@ begin
     'pedidos', coalesce((
       select jsonb_agg(jsonb_build_object(
         'id', p.id, 'estado', p.estado, 'creado_at', p.creado_at, 'total', p.total,
-        'items', (select jsonb_agg(jsonb_build_object('nombre', i.nombre_producto, 'cantidad', i.cantidad, 'sabores', i.sabores))
+        'items', (select jsonb_agg(jsonb_build_object('nombre', i.nombre_producto, 'cantidad', i.cantidad, 'opciones', i.opciones))
                   from items_pedido i where i.pedido_id = p.id)
       ) order by p.creado_at)
       from pedidos p where p.cuenta_id = v_cuenta), '[]'::jsonb)
@@ -437,11 +523,11 @@ begin
                    from items_pedido i join pedidos p on p.id = i.pedido_id
                    where p.negocio_id = v_neg and p.estado <> 'cancelado' and p.creado_at between p_desde and p_hasta
                    group by i.nombre_producto) x),
-    'sabores', (select coalesce(jsonb_agg(x order by x.veces desc), '[]') from (
-                   select s sabor, sum(i.cantidad) veces
-                   from items_pedido i join pedidos p on p.id = i.pedido_id, unnest(i.sabores) s
+    'opciones', (select coalesce(jsonb_agg(x order by x.grupo, x.veces desc), '[]') from (
+                   select o->>'grupo' grupo, o->>'nombre' nombre, sum(i.cantidad) veces
+                   from items_pedido i join pedidos p on p.id = i.pedido_id, jsonb_array_elements(i.opciones) o
                    where p.negocio_id = v_neg and p.estado <> 'cancelado' and p.creado_at between p_desde and p_hasta
-                   group by s) x)
+                   group by 1, 2) x)
   );
 end $$;
 

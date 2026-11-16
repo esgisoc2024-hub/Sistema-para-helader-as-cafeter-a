@@ -39,7 +39,7 @@ export default function Bienvenida() {
         <input id="nombre" required className="campo" value={miNombre} onChange={(e) => setMiNombre(e.target.value)} />
         {modo === "crear" ? (
           <>
-            <label className="etiqueta mt-3" htmlFor="negocio">Nombre de la heladería</label>
+            <label className="etiqueta mt-3" htmlFor="negocio">Nombre del local</label>
             <input id="negocio" required maxLength={80} className="campo" value={negocio} onChange={(e) => setNegocio(e.target.value)} />
             <label className="mt-4 flex items-start gap-3 text-sm">
               <input type="checkbox" className="mt-1 h-4 w-4 accent-frutilla" checked={conDemo} onChange={(e) => setConDemo(e.target.checked)} />

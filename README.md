@@ -7,13 +7,13 @@ Resuelve los dolores relevados en reseñas: demora en mesa, faltantes que siguen
 
 | Pantalla | Ruta | Rol |
 |---|---|---|
-| Carta por QR + carrito + sabores | `/m/<codigo-de-mesa>` | Cliente (sin cuenta) |
+| Carta por QR + carrito + opciones (sabores, leche, tamaño, extras) | `/m/<codigo-de-mesa>` | Cliente (sin cuenta) |
 | Estado del pedido, llamar al mozo, pedir la cuenta | misma pantalla, pestaña “Mi pedido” | Cliente |
 | Comandas de barra (tiempo real, aviso sonoro, alerta a los 10 min) + “sin stock” | `/panel/barra` | Barra, mozo, dueño |
 | Mapa de mesas, detalle, cargar pedido a mano, cobrar y cerrar | `/panel/mesas` | Mozo, dueño |
-| Carta: categorías, productos, precios, sabores | `/panel/carta` | Dueño |
+| Carta: categorías, productos, precios y listas de opciones por producto | `/panel/carta` | Dueño |
 | Mesas, QR para imprimir y equipo | `/panel/local` | Dueño |
-| Reportes: cobrado, pedidos, espera promedio y máxima, ranking de productos y sabores | `/panel/reportes` | Dueño |
+| Reportes: cobrado, pedidos, espera promedio y máxima, ranking de productos y de cada lista de opciones | `/panel/reportes` | Dueño |
 
 Fuera de la v1: facturación electrónica ARCA, cobro online en el QR, stock de insumos por receta, delivery y reservas.
 
@@ -22,6 +22,7 @@ Fuera de la v1: facturación electrónica ARCA, cobro online en el QR, stock de 
 - **Next.js 15** (App Router) + **Tailwind 4**, todo en el navegador; se publica en **Vercel**.
 - **Supabase**: Postgres con RLS por negocio, Auth para el personal y Realtime para la barra y las mesas.
 - El cliente no tiene cuenta: solo usa funciones SQL acotadas (`carta_mesa`, `crear_pedido`, `estado_mesa`, `llamar_desde_mesa`) que validan precio, stock y sabores en el servidor. El precio se copia a cada ítem al pedir.
+- **Opciones por producto**: el dueño arma listas reutilizables (Sabores, Leche, Tamaño, Extras) con precio extra opcional, y en cada producto marca cuáles usa, si son obligatorias y cuántas se eligen. Marcar una opción "sin stock" la saca de todos los productos; si un producto se queda sin opciones obligatorias, se oculta solo.
 - Una **cuenta** es la visita de un grupo a una mesa: se abre con el primer pedido y se cierra al cobrar, así la mesa siguiente arranca de cero.
 - El dueño crea el negocio (opcionalmente con carta de ejemplo y 8 mesas) y comparte un **código de equipo**; quien se une entra como mozo y el dueño le cambia el rol.
 

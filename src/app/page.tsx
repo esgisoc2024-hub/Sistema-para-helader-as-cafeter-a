@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const PUNTOS = [
-  { t: "Pedido por QR en cada mesa", d: "El cliente escanea, elige sabores y pide desde su celular. Sin descargar nada." },
+  { t: "Pedido por QR en cada mesa", d: "El cliente escanea, elige sabores, leche o tamaño y pide desde su celular. Sin descargar nada." },
   { t: "Comanda directa a la barra", d: "El pedido aparece al instante en la tablet, con los minutos de espera a la vista." },
-  { t: "Botón “sin stock”", d: "Se acabó un sabor: un toque y desaparece de la carta para las mesas siguientes." },
-  { t: "Saber qué se vende", d: "Ventas por producto y por sabor, y el tiempo real de espera de cada día." },
+  { t: "Botón “sin stock”", d: "Se acabó un sabor o la leche de almendras: un toque y desaparece de la carta para las mesas siguientes." },
+  { t: "Saber qué se vende", d: "Ventas por producto, sabor y opción, y el tiempo real de espera de cada día." },
 ];
 
 export default function Inicio() {
@@ -15,10 +15,10 @@ export default function Inicio() {
         Que el pedido de la mesa llegue rápido y sin errores a la barra.
       </h1>
       <p className="mt-4 max-w-xl text-lg text-suave">
-        Sistema de pedidos en mesa para heladerías con salón y cafetería. Funciona desde el navegador del celular o la tablet.
+        Sistema de pedidos en mesa para heladerías con salón y cafeterías. Funciona desde el navegador del celular o la tablet.
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
-        <Link href="/login?modo=registro" className="btn-primario">Crear mi heladería</Link>
+        <Link href="/login?modo=registro" className="btn-primario">Crear mi local</Link>
         <Link href="/login" className="btn-secundario">Ingresar</Link>
       </div>
       <ul className="mt-12 grid gap-3 sm:grid-cols-2">

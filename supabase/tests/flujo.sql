@@ -13,31 +13,47 @@ select count(*) = 0 as b_no_ve_mesas_de_a from mesas;
 reset role;
 select codigo as mesa1 from mesas m join negocios n on n.id = m.negocio_id where n.nombre = 'Heladería A' and numero = 1 \gset
 select id as vasito from productos where nombre = 'Vasito 1/4 kg' \gset
-select id as cafe from productos where nombre = 'Café' \gset
-select id as ddl from sabores where nombre = 'Dulce de leche' \gset
-select id as choco from sabores where nombre = 'Chocolate' \gset
+select id as cafe from productos where nombre = 'Café con leche' \gset
+select id as ddl from opciones where nombre = 'Dulce de leche' \gset
+select id as choco from opciones where nombre = 'Chocolate' \gset
+select id as grande from opciones where nombre = 'Grande' \gset
+select id as chico from opciones where nombre = 'Chico' \gset
+select id as almendra from opciones where nombre = 'De almendras' \gset
+select o.id as banana, l.id as entera from opciones o, opciones l where o.nombre = 'Banana' and l.nombre = 'Entera' \gset
 
 -- Cliente anónimo escanea y pide
 set role anon; reset request.jwt.claim.sub;
 select (public.carta_mesa(:'mesa1')->>'mesa')::int = 1 as carta_ok;
+-- Vasito con 2 sabores + 2 cafés con leche grandes de almendras: 6000 + 2 * (3300 + 900 + 700)
 select public.crear_pedido(:'mesa1', jsonb_build_array(
-  jsonb_build_object('producto_id', :'vasito', 'cantidad', 1, 'sabores', jsonb_build_array(:'ddl', :'choco')),
-  jsonb_build_object('producto_id', :'cafe', 'cantidad', 2, 'nota', 'uno cortado'))) as pedido \gset
-select (public.estado_mesa(:'mesa1')->>'total')::numeric = 6000 + 2*2800 as total_ok;
+  jsonb_build_object('producto_id', :'vasito', 'cantidad', 1, 'opciones', jsonb_build_array(:'ddl', :'choco')),
+  jsonb_build_object('producto_id', :'cafe', 'cantidad', 2, 'opciones', jsonb_build_array(:'grande', :'almendra'), 'nota', 'uno cortado'))) as pedido \gset
+select (public.estado_mesa(:'mesa1')->>'total')::numeric = 15800 as total_ok;
+select jsonb_array_length(opciones) = 2 and precio_unitario = 4900 as extras_copiados from items_pedido where nombre_producto = 'Café con leche';
 select count(*) = 0 as anon_no_lee_tablas from pedidos;
 
--- Errores esperados
-do $$ begin perform public.crear_pedido('no-existe', '[]'); raise exception 'debio fallar'; exception when others then if sqlerrm = 'debio fallar' then raise; end if; end $$;
+-- Errores esperados: mesa inexistente, falta elegir leche (obligatorio), dos tamaños (máximo 1), opción de otro producto
+create function pg_temp.falla(q text) returns boolean language plpgsql as $f$
+begin execute q; return false; exception when others then return true; end $f$;
+select pg_temp.falla($q$ select public.crear_pedido('no-existe', '[]') $q$) as mesa_invalida_falla;
+select pg_temp.falla(format($q$ select public.crear_pedido(%L, '[{"producto_id":"%s","opciones":["%s"]}]') $q$, :'mesa1', :'cafe', :'grande')) as falta_leche_falla;
+select pg_temp.falla(format($q$ select public.crear_pedido(%L, '[{"producto_id":"%s","opciones":["%s","%s","%s"]}]') $q$, :'mesa1', :'cafe', :'grande', :'chico', :'almendra')) as dos_tamanios_falla;
+select pg_temp.falla(format($q$ select public.crear_pedido(%L, '[{"producto_id":"%s","opciones":["%s","%s","%s"]}]') $q$, :'mesa1', :'cafe', :'grande', :'almendra', :'ddl')) as opcion_ajena_falla;
+select (public.estado_mesa(:'mesa1')->>'total')::numeric = 15800 as fallidos_no_suman;
 
 -- Barra (dueña A) cambia estado y marca sin stock
 set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 update pedidos set estado = 'preparando' where id = :'pedido';
 update pedidos set estado = 'listo' where id = :'pedido';
 select listo_at is not null and preparando_at is not null as horas_ok from pedidos where id = :'pedido';
-select public.cambiar_disponible('sabor', :'choco', false);
+select public.cambiar_disponible('opcion', :'choco', false);
+-- Sin ninguna fruta, el licuado (fruta obligatoria) desaparece de la carta
+update opciones set disponible = false where grupo_id = (select grupo_id from opciones where id = :'banana');
 reset role;
 set role anon; reset request.jwt.claim.sub;
-select not (public.carta_mesa(:'mesa1')->'sabores' @> jsonb_build_array(jsonb_build_object('nombre','Chocolate'))) as choco_oculto;
+select not (public.carta_mesa(:'mesa1')::text like '%"Chocolate"%') as choco_oculto;
+select not (public.carta_mesa(:'mesa1')::text like '%Licuado%') as licuado_oculto;
+select public.carta_mesa(:'mesa1')::text like '%Cucurucho%' as cucurucho_visible;
 select public.llamar_desde_mesa(:'mesa1', 'cuenta');
 select public.estado_mesa(:'mesa1')->>'estado_mesa' = 'pide_cuenta' as pide_cuenta;
 
@@ -48,9 +64,9 @@ reset role; select estado = 'listo' as b_no_modifico from pedidos where id = :'p
 
 -- Cierre de mesa por A y reporte
 set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
-select public.cerrar_mesa((select id from mesas where codigo = :'mesa1'), 'efectivo') = 11600 as cobro_ok;
+select public.cerrar_mesa((select id from mesas where codigo = :'mesa1'), 'efectivo') = 15800 as cobro_ok;
 select estado = 'libre' as mesa_libre from mesas where codigo = :'mesa1';
-select (r->>'ventas')::numeric = 11600 as ventas_ok, jsonb_array_length(r->'sabores') = 2 as sabores_ok
+select (r->>'ventas')::numeric = 15800 as ventas_ok, jsonb_array_length(r->'opciones') = 4 as opciones_ok
   from public.reporte(now() - interval '1 day', now() + interval '1 day') r;
 -- Nueva visita en la misma mesa arranca de cero
 reset role; set role anon; reset request.jwt.claim.sub;
