@@ -5,7 +5,8 @@ export type MedioPago = "efectivo" | "qr" | "tarjeta";
 
 export interface Usuario { id: string; negocio_id: string; nombre: string; rol: Rol }
 export interface Negocio { id: string; nombre: string; direccion: string | null; codigo_equipo: string; logo_url: string | null; color: string;
-  portada_url: string | null; portada_tipo: "imagen" | "video" | null }
+  portada_url: string | null; portada_tipo: "imagen" | "video" | null;
+  estado: "prueba" | "activo" | "suspendido" }
 export interface Mesa { id: string; negocio_id: string; numero: number; codigo: string; estado: EstadoMesa; llamado_at: string | null; activa: boolean }
 export interface Categoria { id: string; nombre: string; orden: number }
 export interface Producto {
@@ -32,6 +33,7 @@ export interface ProductoPublico {
   id: string; nombre: string; descripcion: string | null; precio: number; foto_url: string | null; grupos: GrupoPublico[];
 }
 export interface CartaPublica {
+  suspendido?: boolean;
   negocio: string; mesa: number; logo_url: string | null; color: string | null;
   portada_url: string | null; portada_tipo: "imagen" | "video" | null;
   categorias: { id: string; nombre: string; productos: ProductoPublico[] }[];

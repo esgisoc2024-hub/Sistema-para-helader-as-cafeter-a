@@ -87,4 +87,27 @@ select public.carta_mesa(:'mesa1')->>'color' = '#1f6feb' and public.carta_mesa(:
 reset role; set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
 update negocios set color = '#000000';
 reset role; select color = '#1f6feb' as mozo_no_cambia_color from negocios where nombre = 'Heladería A';
+-- Panel de administración: solo la administradora ve todos los locales y puede suspender.
+insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000ad', 'admin@ejemplo.com');
+insert into administradores (user_id) values ('00000000-0000-0000-0000-0000000000ad');
+set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select not public.es_admin() as duenia_no_es_admin;
+select pg_temp.falla($q$ select public.admin_locales() $q$) as duenia_no_ve_locales;
+select pg_temp.falla($q$ update negocios set estado = 'activo' $q$) as duenia_no_cambia_estado;
+select count(*) = 0 as duenia_no_lee_seguimiento from admin_seguimiento;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000ad';
+select jsonb_array_length(public.admin_locales()) = 2 as admin_ve_los_dos;
+select (l->>'pedidos_30d')::int >= 1 and (l->>'ventas_30d')::numeric = 15800 as actividad_ok
+  from jsonb_array_elements(public.admin_locales()) l where l->>'nombre' = 'Heladería A';
+reset role; select id as neg_a from negocios where nombre = 'Heladería A' \gset
+set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000ad';
+select public.admin_actualizar_local(:'neg_a', 'suspendido', '11-5555-0000', '2026-12-10', 'No pagó noviembre');
+reset role; set role anon; reset request.jwt.claim.sub;
+select (public.carta_mesa(:'mesa1')->>'suspendido')::boolean as carta_suspendida;
+select pg_temp.falla(format($q$ select public.crear_pedido(%L, '[{"producto_id":"%s","opciones":["%s","%s"]}]') $q$, :'mesa1', :'cafe', :'grande', :'almendra')) as suspendido_no_pide;
+reset role; set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000ad';
+select public.admin_actualizar_local(:'neg_a', 'activo', '11-5555-0000', '2026-12-10', null);
+reset role; set role anon; reset request.jwt.claim.sub;
+select public.carta_mesa(:'mesa1') ? 'categorias' as reactivado_ok;
+reset role;
 select 'TODO OK' as resultado;

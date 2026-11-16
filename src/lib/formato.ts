@@ -15,6 +15,7 @@ export function mensajeError(e: unknown): string {
   if (m.startsWith("opciones_invalidas:")) return `Revisá lo elegido en “${m.split(":")[1]}”.`;
   if (m.includes("opcion_sin_stock")) return "Una de las opciones se acaba de agotar. Elegí otra.";
   if (m.includes("demasiados_pedidos")) return "Hiciste muchos pedidos seguidos. Esperá un momento.";
+  if (m.includes("local_suspendido")) return "El local no está tomando pedidos por acá en este momento. Pedile al personal.";
   if (m.includes("mesa_invalida")) return "Este QR no corresponde a una mesa activa.";
   if (m.includes("codigo_invalido")) return "El código del equipo no existe. Pedíselo al dueño.";
   if (m.includes("ya_tiene_negocio")) return "Tu usuario ya pertenece a un negocio.";

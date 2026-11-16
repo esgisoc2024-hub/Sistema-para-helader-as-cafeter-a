@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSesion } from "@/lib/useSesion";
 import { supabase } from "@/lib/supabase";
 import { PanelContexto } from "@/components/PanelContexto";
@@ -21,6 +21,12 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
   const sesion = useSesion();
   const router = useRouter();
   const ruta = usePathname();
+  const [esAdmin, setEsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (sesion.cargando || sesion.sinLogin) return;
+    supabase().rpc("es_admin").then(({ data }) => setEsAdmin(data === true));
+  }, [sesion]);
 
   useEffect(() => {
     if (sesion.cargando) return;
@@ -52,9 +58,15 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
                   {m.texto}
                 </Link>
               ))}
+              {esAdmin && <Link href="/admin" className="rounded-full border border-choco px-3 py-1.5 text-choco">Mis locales</Link>}
             </nav>
           </div>
         </header>
+        {negocio.estado === "suspendido" && (
+          <p role="alert" className="no-imprimir bg-frutilla px-4 py-2 text-center text-sm font-bold text-white">
+            Tu cuenta está suspendida: los clientes no pueden pedir desde el QR. Escribinos para reactivarla.
+          </p>
+        )}
         <div className="mx-auto max-w-6xl px-4 py-5">{children}</div>
       </div>
     </PanelContexto.Provider>

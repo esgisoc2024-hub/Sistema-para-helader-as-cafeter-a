@@ -111,6 +111,7 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
 
   if (carta === undefined) return <Centro>Cargando la carta…</Centro>;
   if (carta === null) return <Centro>Este QR no corresponde a una mesa activa. Avisale al personal.</Centro>;
+  if (carta.suspendido) return <Centro>La carta de {carta.negocio} no está disponible por acá en este momento. Pedile al personal.</Centro>;
 
   const hayPedidos = (estado?.pedidos.length ?? 0) > 0;
 
