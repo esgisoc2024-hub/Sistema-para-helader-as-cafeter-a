@@ -31,11 +31,11 @@ Fuera de la v1: facturación electrónica ARCA, cobro online en el QR, stock de 
 1. Crear un proyecto en Supabase y correr `supabase/migrations/20261116000000_esquema_inicial.sql`
    (SQL Editor, o `supabase db push` con la CLI).
 2. En Supabase → Authentication, para probar rápido se puede desactivar “Confirm email”.
-3. Copiar `.env.example` a `.env.local` con la URL y la publishable key del proyecto.
+3. La URL y la publishable key del proyecto actual ya están en `src/lib/supabase.ts` (son públicas). Para usar otro proyecto, copiar `.env.example` a `.env.local`.
 4. `npm install` y `npm run dev` → http://localhost:3000
 5. Crear cuenta → “Soy el dueño” → imprimir los QR desde **Local y QR**.
 
-Para Vercel: importar el repo y cargar las dos variables de `.env.example`.
+Para Vercel: importar el repo (las variables son opcionales). En Supabase → Authentication → URL Configuration, poner el link de Vercel en Site URL.
 
 ## Pruebas de la base de datos
 
