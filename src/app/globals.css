@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/* Paleta: crema, frutilla y chocolate. Alto contraste para usar en el salón con mucha luz. */
+@theme {
+  --color-crema: #fff8ef;
+  --color-papel: #ffffff;
+  --color-tinta: #2b1d16;
+  --color-suave: #7a6458;
+  --color-borde: #ecdccb;
+  --color-frutilla: #d94a64;
+  --color-frutilla-osc: #b8364f;
+  --color-menta: #2f9e7a;
+  --color-limon: #f2b632;
+  --color-choco: #5a3a2a;
+  --font-sans: var(--font-texto), system-ui, sans-serif;
+  --font-titulo: var(--font-titulo), Georgia, serif;
+}
+
+body {
+  background: var(--color-crema);
+  color: var(--color-tinta);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+}
+@utility btn-primario {
+  @apply btn bg-frutilla text-white hover:bg-frutilla-osc;
+}
+@utility btn-secundario {
+  @apply btn border border-borde bg-papel text-tinta hover:bg-crema;
+}
+@utility tarjeta {
+  @apply rounded-2xl border border-borde bg-papel;
+}
+@utility campo {
+  @apply w-full rounded-xl border border-borde bg-papel px-4 py-3 outline-none focus:border-frutilla focus:ring-2 focus:ring-frutilla/20;
+}
+@utility etiqueta {
+  @apply mb-1 block text-sm font-medium text-suave;
+}
+
+@media print {
+  .no-imprimir { display: none !important; }
+  body { background: white; }
+}

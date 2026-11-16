@@ -1,0 +1,48 @@
+# Mesa Dulce — sistema para heladerías-cafetería
+
+Pedidos en mesa por QR, comandas en la barra en tiempo real, mapa de mesas con cobro y reportes de ventas y espera.
+Resuelve los dolores relevados en reseñas: demora en mesa, faltantes que siguen en la carta, errores al cobrar y decisiones sin datos.
+
+## Qué incluye (versión 1)
+
+| Pantalla | Ruta | Rol |
+|---|---|---|
+| Carta por QR + carrito + sabores | `/m/<codigo-de-mesa>` | Cliente (sin cuenta) |
+| Estado del pedido, llamar al mozo, pedir la cuenta | misma pantalla, pestaña “Mi pedido” | Cliente |
+| Comandas de barra (tiempo real, aviso sonoro, alerta a los 10 min) + “sin stock” | `/panel/barra` | Barra, mozo, dueño |
+| Mapa de mesas, detalle, cargar pedido a mano, cobrar y cerrar | `/panel/mesas` | Mozo, dueño |
+| Carta: categorías, productos, precios, sabores | `/panel/carta` | Dueño |
+| Mesas, QR para imprimir y equipo | `/panel/local` | Dueño |
+| Reportes: cobrado, pedidos, espera promedio y máxima, ranking de productos y sabores | `/panel/reportes` | Dueño |
+
+Fuera de la v1: facturación electrónica ARCA, cobro online en el QR, stock de insumos por receta, delivery y reservas.
+
+## Cómo funciona
+
+- **Next.js 15** (App Router) + **Tailwind 4**, todo en el navegador; se publica en **Vercel**.
+- **Supabase**: Postgres con RLS por negocio, Auth para el personal y Realtime para la barra y las mesas.
+- El cliente no tiene cuenta: solo usa funciones SQL acotadas (`carta_mesa`, `crear_pedido`, `estado_mesa`, `llamar_desde_mesa`) que validan precio, stock y sabores en el servidor. El precio se copia a cada ítem al pedir.
+- Una **cuenta** es la visita de un grupo a una mesa: se abre con el primer pedido y se cierra al cobrar, así la mesa siguiente arranca de cero.
+- El dueño crea el negocio (opcionalmente con carta de ejemplo y 8 mesas) y comparte un **código de equipo**; quien se une entra como mozo y el dueño le cambia el rol.
+
+## Puesta en marcha
+
+1. Crear un proyecto en Supabase y correr `supabase/migrations/20261116000000_esquema_inicial.sql`
+   (SQL Editor, o `supabase db push` con la CLI).
+2. En Supabase → Authentication, para probar rápido se puede desactivar “Confirm email”.
+3. Copiar `.env.example` a `.env.local` con la URL y la publishable key del proyecto.
+4. `npm install` y `npm run dev` → http://localhost:3000
+5. Crear cuenta → “Soy el dueño” → imprimir los QR desde **Local y QR**.
+
+Para Vercel: importar el repo y cargar las dos variables de `.env.example`.
+
+## Pruebas de la base de datos
+
+`supabase/tests/flujo.sql` recorre el flujo completo (alta, pedido por QR, barra, sin stock, cobro, reporte, aislamiento entre negocios y permisos de roles) sobre un Postgres común:
+
+```bash
+createdb prueba && psql -d prueba -f supabase/tests/stub_supabase.sql \
+  -f supabase/migrations/20261116000000_esquema_inicial.sql -f supabase/tests/flujo.sql
+```
+
+Termina con `TODO OK`.
