@@ -78,4 +78,13 @@ select codigo_equipo as cod from negocios where nombre = 'Heladería A' \gset
 set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
 select public.unirse_a_negocio(:'cod', 'Mozo Juan') is not null as mozo_unido;
 do $$ begin perform public.reporte(now(), now()); raise exception 'debio fallar'; exception when others then if sqlerrm = 'debio fallar' then raise; end if; end $$;
+-- Apariencia: la dueña cambia color y logo; el cliente los ve; un color inválido se rechaza; el mozo no puede cambiarlo.
+reset role; set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+update negocios set color = '#1f6feb', logo_url = 'https://ejemplo.com/logo.webp';
+select pg_temp.falla($q$ update negocios set color = 'rojo' $q$) as color_invalido_falla;
+reset role; set role anon; reset request.jwt.claim.sub;
+select public.carta_mesa(:'mesa1')->>'color' = '#1f6feb' and public.carta_mesa(:'mesa1')->>'logo_url' like '%logo.webp' as cliente_ve_marca;
+reset role; set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+update negocios set color = '#000000';
+reset role; select color = '#1f6feb' as mozo_no_cambia_color from negocios where nombre = 'Heladería A';
 select 'TODO OK' as resultado;

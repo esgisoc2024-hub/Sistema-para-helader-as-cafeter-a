@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { mensajeError, precio } from "@/lib/formato";
 import { usePanel } from "@/components/PanelContexto";
+import { SubirImagen } from "@/components/SubirImagen";
+import { borrarImagen } from "@/lib/imagenes";
 import type { Categoria, GrupoOpciones, Opcion, Producto, ProductoGrupo } from "@/lib/tipos";
 
 type Vinculo = { activo: boolean; minimo: number; maximo: number };
@@ -71,6 +73,8 @@ export default function Carta() {
       : await sb.from("productos").insert(datos).select("id").single();
     if (res.error || !res.data) return setError(mensajeError(res.error));
     const id = res.data.id as string;
+    const fotoAnterior = productos.find((p) => p.id === id)?.foto_url;
+    if (fotoAnterior && fotoAnterior !== datos.foto_url) borrarImagen(fotoAnterior);
     // Reemplaza los grupos de opciones del producto por los marcados.
     const filas = grupos
       .filter((g) => editando.vinculos[g.id]?.activo)
@@ -204,8 +208,10 @@ export default function Carta() {
               </fieldset>
             )}
 
-            <label className="etiqueta mt-4" htmlFor="p-foto">Foto (link, opcional)</label>
-            <input id="p-foto" type="url" className="campo" value={editando.foto_url ?? ""} onChange={(e) => setEditando({ ...editando, foto_url: e.target.value })} placeholder="https://…" />
+            <div className="mt-4">
+              <SubirImagen negocioId={negocio.id} tipo="producto" url={editando.foto_url} etiqueta="Foto (opcional)"
+                onCambio={(url) => setEditando({ ...editando, foto_url: url })} />
+            </div>
             <label className="mt-4 flex items-center gap-3">
               <input type="checkbox" className="h-4 w-4 accent-frutilla" checked={editando.disponible ?? true} onChange={(e) => setEditando({ ...editando, disponible: e.target.checked })} />
               Disponible

@@ -4,6 +4,7 @@ import { use, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { estiloMarca } from "@/lib/color";
 import { ETIQUETA_ESTADO, mensajeError, precio, textoOpciones } from "@/lib/formato";
 import type { CartaPublica, EstadoMesaPublico, ProductoPublico } from "@/lib/tipos";
 
@@ -113,7 +114,7 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
   const hayPedidos = (estado?.pedidos.length ?? 0) > 0;
 
   return (
-    <main className="mx-auto min-h-dvh max-w-xl pb-32">
+    <main className="mx-auto min-h-dvh max-w-xl pb-32" style={estiloMarca(carta.color)}>
       {esMozo && (
         <div className="flex items-center justify-between bg-choco px-4 py-2 text-sm font-semibold text-white">
           <span>Cargando pedido como mozo</span>
@@ -121,9 +122,15 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
         </div>
       )}
       <header className="sticky top-0 z-10 border-b border-borde bg-crema/95 px-4 pb-3 pt-4 backdrop-blur">
-        <div className="flex items-baseline justify-between">
-          <h1 className="font-titulo text-2xl font-bold">{carta.negocio}</h1>
-          <span className="rounded-full bg-choco px-3 py-1 text-sm font-semibold text-white">Mesa {carta.mesa}</span>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            {carta.logo_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={carta.logo_url} alt={`Logo de ${carta.negocio}`} className="h-11 w-11 shrink-0 rounded-xl bg-papel object-contain" />
+            )}
+            <h1 className="truncate font-titulo text-2xl font-bold">{carta.negocio}</h1>
+          </div>
+          <span className="shrink-0 rounded-full bg-choco px-3 py-1 text-sm font-semibold text-white">Mesa {carta.mesa}</span>
         </div>
         <div className="mt-3 grid grid-cols-2 gap-1 rounded-full bg-borde/60 p-1 text-sm font-semibold">
           {(["carta", "pedido"] as const).map((v) => (

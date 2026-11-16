@@ -4,7 +4,7 @@ export type EstadoMesa = "libre" | "ocupada" | "pide_cuenta";
 export type MedioPago = "efectivo" | "qr" | "tarjeta";
 
 export interface Usuario { id: string; negocio_id: string; nombre: string; rol: Rol }
-export interface Negocio { id: string; nombre: string; direccion: string | null; codigo_equipo: string }
+export interface Negocio { id: string; nombre: string; direccion: string | null; codigo_equipo: string; logo_url: string | null; color: string }
 export interface Mesa { id: string; negocio_id: string; numero: number; codigo: string; estado: EstadoMesa; llamado_at: string | null; activa: boolean }
 export interface Categoria { id: string; nombre: string; orden: number }
 export interface Producto {
@@ -31,7 +31,7 @@ export interface ProductoPublico {
   id: string; nombre: string; descripcion: string | null; precio: number; foto_url: string | null; grupos: GrupoPublico[];
 }
 export interface CartaPublica {
-  negocio: string; mesa: number;
+  negocio: string; mesa: number; logo_url: string | null; color: string | null;
   categorias: { id: string; nombre: string; productos: ProductoPublico[] }[];
 }
 export interface EstadoMesaPublico {

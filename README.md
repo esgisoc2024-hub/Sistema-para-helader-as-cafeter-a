@@ -12,7 +12,7 @@ Resuelve los dolores relevados en reseñas: demora en mesa, faltantes que siguen
 | Comandas de barra (tiempo real, aviso sonoro, alerta a los 10 min) + “sin stock” | `/panel/barra` | Barra, mozo, dueño |
 | Mapa de mesas, detalle, cargar pedido a mano, cobrar y cerrar | `/panel/mesas` | Mozo, dueño |
 | Carta: categorías, productos, precios y listas de opciones por producto | `/panel/carta` | Dueño |
-| Mesas, QR para imprimir y equipo | `/panel/local` | Dueño |
+| Apariencia (nombre, logo, color), mesas, QR para imprimir y equipo | `/panel/local` | Dueño |
 | Reportes: cobrado, pedidos, espera promedio y máxima, ranking de productos y de cada lista de opciones | `/panel/reportes` | Dueño |
 
 Fuera de la v1: facturación electrónica ARCA, cobro online en el QR, stock de insumos por receta, delivery y reservas.
@@ -28,8 +28,8 @@ Fuera de la v1: facturación electrónica ARCA, cobro online en el QR, stock de 
 
 ## Puesta en marcha
 
-1. Crear un proyecto en Supabase y correr `supabase/migrations/20261116000000_esquema_inicial.sql`
-   (SQL Editor, o `supabase db push` con la CLI).
+1. Crear un proyecto en Supabase y correr, en orden, los archivos de `supabase/migrations/`
+   (SQL Editor, o `supabase db push` con la CLI). El último crea el almacenamiento de imágenes.
 2. En Supabase → Authentication, para probar rápido se puede desactivar “Confirm email”.
 3. La URL y la publishable key del proyecto actual ya están en `src/lib/supabase.ts` (son públicas). Para usar otro proyecto, copiar `.env.example` a `.env.local`.
 4. `npm install` y `npm run dev` → http://localhost:3000

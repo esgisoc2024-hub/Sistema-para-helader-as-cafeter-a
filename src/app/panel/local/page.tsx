@@ -5,6 +5,7 @@ import QRCode from "qrcode";
 import { supabase } from "@/lib/supabase";
 import { mensajeError } from "@/lib/formato";
 import { usePanel } from "@/components/PanelContexto";
+import { Apariencia } from "@/components/Apariencia";
 import type { Mesa, Rol, Usuario } from "@/lib/tipos";
 
 const ROLES: { valor: Rol; texto: string }[] = [
@@ -62,6 +63,7 @@ export default function Local() {
 
   return (
     <div>
+      <div className="no-imprimir mb-4"><Apariencia negocio={negocio} /></div>
       <section className="no-imprimir mb-8 grid gap-4 md:grid-cols-2">
         <div className="tarjeta p-5">
           <h2 className="font-titulo text-xl font-bold">Equipo</h2>
