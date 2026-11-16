@@ -5,7 +5,7 @@ import "@fontsource-variable/nunito";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Mesa Dulce · pedidos en mesa para heladerías y cafés",
+  title: "Mesa Match · pedidos en mesa para heladerías y cafés",
   description: "Pedidos por QR, comandas en la barra y reportes para heladerías y cafeterías.",
 };
 

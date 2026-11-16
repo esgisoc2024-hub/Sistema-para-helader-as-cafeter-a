@@ -1,4 +1,4 @@
-# Mesa Dulce — sistema para heladerías-cafetería
+# Mesa Match — sistema para heladerías-cafetería
 
 Pedidos en mesa por QR, comandas en la barra en tiempo real, mapa de mesas con cobro y reportes de ventas y espera.
 Resuelve los dolores relevados en reseñas: demora en mesa, faltantes que siguen en la carta, errores al cobrar y decisiones sin datos.

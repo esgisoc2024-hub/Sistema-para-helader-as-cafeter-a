@@ -12,7 +12,7 @@ export default function Inicio() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12 sm:py-20">
       <Fondo />
-      <p className="text-sm font-semibold uppercase tracking-wide text-frutilla">Mesa Dulce</p>
+      <p className="text-sm font-semibold uppercase tracking-wide text-frutilla">Mesa Match</p>
       <h1 className="mt-2 font-titulo text-4xl leading-tight sm:text-5xl">
         Que el pedido de la mesa llegue rápido y sin errores a la barra.
       </h1>
