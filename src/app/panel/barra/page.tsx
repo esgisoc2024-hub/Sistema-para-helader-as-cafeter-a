@@ -56,7 +56,11 @@ export default function Barra() {
         <h1 className="font-titulo text-2xl">Comandas</h1>
         <span className="text-sm text-suave">{pedidos.length} en curso</span>
         <div className="ml-auto flex gap-2">
-          <button className="btn-secundario py-2 text-sm" onClick={() => setSonido(!sonido)} aria-pressed={sonido}>
+          <button className="btn-secundario py-2 text-sm" aria-pressed={sonido}
+            onClick={() => {
+              if (!sonido) { activarAudio(); beep(); } // suena una vez para confirmar que se escucha
+              setSonido(!sonido);
+            }}>
             {sonido ? "🔔 Sonido activado" : "🔕 Activar sonido"}
           </button>
           <button className="btn-secundario py-2 text-sm" onClick={() => setVerStock(!verStock)}>
@@ -111,14 +115,33 @@ export default function Barra() {
   );
 }
 
-function beep() {
+// Un solo "parlante" para toda la pantalla. Se crea al tocar "Activar sonido": los navegadores
+// (sobre todo iPad y iPhone) solo dejan sonar si el audio se habilitó con un toque del usuario.
+let audio: AudioContext | null = null;
+
+function activarAudio() {
   try {
-    const ctx = new AudioContext();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
-    g.gain.setValueAtTime(0.2, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-    o.start(); o.stop(ctx.currentTime + 0.5);
+    audio ??= new AudioContext();
+    if (audio.state === "suspended") audio.resume();
+  } catch {}
+}
+
+// Dos tonos cortos tipo "ding-dong".
+function beep() {
+  if (!audio) return;
+  try {
+    if (audio.state === "suspended") audio.resume();
+    const ahora = audio.currentTime;
+    [880, 1320].forEach((frecuencia, i) => {
+      const o = audio!.createOscillator();
+      const g = audio!.createGain();
+      o.frequency.value = frecuencia;
+      o.connect(g); g.connect(audio!.destination);
+      const t = ahora + i * 0.22;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.35, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+      o.start(t); o.stop(t + 0.42);
+    });
   } catch {}
 }
