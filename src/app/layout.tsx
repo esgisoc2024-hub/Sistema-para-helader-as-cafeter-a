@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter } from "next/font/google";
+// Fuentes incluidas en la app (no se descargan de Google al compilar).
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/inter";
 import "./globals.css";
-
-const titulo = Fraunces({ variable: "--font-titulo", subsets: ["latin"], weight: ["600", "700"] });
-const texto = Inter({ variable: "--font-texto", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Mesa Dulce · pedidos en mesa para heladerías y cafés",
@@ -15,7 +14,7 @@ export const viewport: Viewport = { themeColor: "#fff8ef", width: "device-width"
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es-AR">
-      <body className={`${titulo.variable} ${texto.variable} font-sans antialiased`}>{children}</body>
+      <body className="font-sans antialiased">{children}</body>
     </html>
   );
 }

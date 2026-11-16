@@ -12,8 +12,8 @@
   --color-menta: #2f9e7a;
   --color-limon: #f2b632;
   --color-choco: #5a3a2a;
-  --font-sans: var(--font-texto), system-ui, sans-serif;
-  --font-titulo: var(--font-titulo), Georgia, serif;
+  --font-sans: "Inter Variable", system-ui, sans-serif;
+  --font-titulo: "Fraunces Variable", Georgia, serif;
 }
 
 body {
