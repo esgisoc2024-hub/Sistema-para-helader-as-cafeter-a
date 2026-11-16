@@ -37,19 +37,20 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
     <PanelContexto.Provider value={{ usuario, negocio }}>
       <div className="min-h-dvh">
         <header className="no-imprimir sticky top-0 z-20 border-b border-borde bg-crema/95 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-            <p className="truncate font-titulo text-lg font-bold">{negocio.nombre}</p>
-            <nav className="-mx-1 flex flex-1 gap-1 overflow-x-auto text-sm font-semibold">
+          {/* En el celular el menú baja a su propia fila y se acomoda en varias líneas: nunca queda escondido. */}
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+            <p className="min-w-0 flex-1 truncate font-titulo text-lg font-bold md:flex-none">{negocio.nombre}</p>
+            <button className="shrink-0 text-sm text-suave underline md:order-last" onClick={async () => { await supabase().auth.signOut(); router.replace("/login"); }}>
+              Salir
+            </button>
+            <nav aria-label="Secciones" className="flex w-full flex-wrap gap-1.5 text-sm font-semibold md:w-auto md:flex-1">
               {menu.map((m) => (
                 <Link key={m.href} href={m.href}
-                  className={`shrink-0 rounded-full px-3 py-1.5 ${ruta.startsWith(m.href) ? "bg-choco text-white" : "text-suave hover:bg-borde/50"}`}>
+                  className={`rounded-full border px-3 py-1.5 ${ruta.startsWith(m.href) ? "border-choco bg-choco text-white" : "border-borde bg-papel text-tinta hover:bg-borde/50"}`}>
                   {m.texto}
                 </Link>
               ))}
             </nav>
-            <button className="shrink-0 text-sm text-suave underline" onClick={async () => { await supabase().auth.signOut(); router.replace("/login"); }}>
-              Salir
-            </button>
           </div>
         </header>
         <div className="mx-auto max-w-6xl px-4 py-5">{children}</div>
