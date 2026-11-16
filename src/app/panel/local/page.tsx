@@ -66,7 +66,7 @@ export default function Local() {
       <div className="no-imprimir mb-4"><Apariencia negocio={negocio} /></div>
       <section className="no-imprimir mb-8 grid gap-4 md:grid-cols-2">
         <div className="tarjeta p-5">
-          <h2 className="font-titulo text-xl font-medium">Equipo</h2>
+          <h2 className="font-titulo text-xl">Equipo</h2>
           <p className="mt-1 text-sm text-suave">
             Para sumar a alguien: que cree su cuenta, elija “Soy del equipo” y ponga este código.
           </p>
@@ -85,7 +85,7 @@ export default function Local() {
           </ul>
         </div>
         <div className="tarjeta p-5">
-          <h2 className="font-titulo text-xl font-medium">Mesas</h2>
+          <h2 className="font-titulo text-xl">Mesas</h2>
           <p className="mt-1 text-sm text-suave">Cada mesa tiene su QR. Imprimilos y pegalos en las mesas.</p>
           <div className="mt-4 flex items-center gap-2">
             <input aria-label="Cantidad de mesas" type="number" min={1} max={50} className="campo w-24" value={cantidad} onChange={(e) => setCantidad(Math.max(1, Math.min(50, Number(e.target.value))))} />
@@ -100,7 +100,7 @@ export default function Local() {
         {mesas.map((m) => (
           <div key={m.id} className={`tarjeta break-inside-avoid p-4 text-center ${m.activa ? "" : "opacity-40 print:hidden"}`}>
             <p className="text-sm font-semibold text-suave">{negocio.nombre}</p>
-            <p className="font-titulo text-3xl font-medium">Mesa {m.numero}</p>
+            <p className="font-titulo text-3xl">Mesa {m.numero}</p>
             {qrs[m.id] && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={qrs[m.id]} alt={`QR mesa ${m.numero}`} className="mx-auto my-2 w-full max-w-[180px]" />

@@ -14,37 +14,62 @@
   --color-menta: #4e7f55;        /* pistacho: listo / éxito */
   --color-limon: #e9a62e;        /* mango: preparando */
   --color-choco: #1f2b47;        /* azul cono: etiquetas y panel */
-  --font-sans: "Jost Variable", system-ui, sans-serif;
-  --font-titulo: "Bodoni Moda Variable", "Didot", Georgia, serif;
+  --font-sans: "Nunito Variable", system-ui, sans-serif;
+  --font-titulo: "Lilita One", "Nunito Variable", system-ui, sans-serif;
+
+  --animate-entrar: entrar 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  --animate-rebote: rebote 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  --animate-subir: subir 0.3s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  --animate-bajar: bajar 0.35s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  --animate-latir: latir 1.4s ease-in-out infinite;
 }
+
+@keyframes entrar { from { opacity: 0; transform: translateY(14px) scale(0.97); } }
+@keyframes rebote { 0% { transform: scale(0.9); } 60% { transform: scale(1.06); } }
+@keyframes subir { from { transform: translateY(100%); } }
+@keyframes bajar { from { opacity: 0; transform: translateY(-120%); } }
+@keyframes latir { 50% { transform: scale(1.08); } }
+@keyframes flotar { to { transform: translate(8vw, 6vh) scale(1.15); } }
 
 body {
   background: var(--color-crema);
   color: var(--color-tinta);
+  font-weight: 500;
   -webkit-tap-highlight-color: transparent;
-  font-feature-settings: "ss01";
 }
 
-/* Títulos Bodoni: alto contraste, un poco más apretados. */
-.font-titulo { letter-spacing: -0.01em; font-optical-sizing: auto; }
+/* Títulos gorditos: una sola variante, sin negrita sintética. */
+.font-titulo { font-weight: 400; letter-spacing: 0.01em; }
 
 :focus-visible { outline: 2px solid var(--color-frutilla); outline-offset: 2px; }
+
+/* ── Trasfondo difuminado ── */
+.fondo { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: var(--color-crema); pointer-events: none; }
+/* Se dibuja chico y se agranda: el desenfoque sale barato incluso con video. */
+.fondo-media { position: absolute; left: 0; top: 0; width: 25%; height: 25%; object-fit: cover;
+  transform-origin: top left; transform: scale(4.4) translate(-4%, -4%); filter: blur(9px) saturate(1.25); }
+.fondo-bola { position: absolute; width: 70vmax; height: 70vmax; max-width: 620px; max-height: 620px; border-radius: 50%;
+  filter: blur(70px); opacity: 0.55; animation: flotar 17s ease-in-out infinite alternate; }
+.fondo-velo { position: absolute; inset: 0; background: color-mix(in srgb, var(--color-crema) 58%, transparent); }
+.fondo-velo-suave { background: color-mix(in srgb, var(--color-crema) 45%, transparent); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
+@media print { .fondo { display: none; } }
+
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 font-extrabold transition active:scale-95 disabled:pointer-events-none disabled:opacity-50;
 }
 @utility btn-primario {
-  @apply btn bg-frutilla text-white hover:bg-frutilla-osc;
+  @apply btn bg-frutilla text-white shadow-[0_4px_0_var(--color-frutilla-osc)] hover:bg-frutilla-osc active:translate-y-0.5 active:shadow-[0_1px_0_var(--color-frutilla-osc)];
 }
 @utility btn-secundario {
   @apply btn border border-borde bg-papel text-tinta hover:bg-crema;
 }
 @utility tarjeta {
-  @apply rounded-[22px] border border-borde bg-papel;
+  @apply rounded-[24px] border border-white/70 bg-papel/85 shadow-[0_6px_24px_-12px_rgba(46,31,28,0.25)];
 }
 @utility campo {
   @apply w-full rounded-2xl border border-borde bg-papel px-4 py-3 outline-none focus:border-frutilla focus:ring-2 focus:ring-frutilla/15;

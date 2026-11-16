@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 // Fuentes incluidas en la app (no se descargan de Google al compilar).
-import "@fontsource-variable/bodoni-moda";
-import "@fontsource-variable/jost";
+import "@fontsource/lilita-one";
+import "@fontsource-variable/nunito";
 import "./globals.css";
 
 export const metadata: Metadata = {

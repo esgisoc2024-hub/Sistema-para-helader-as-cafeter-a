@@ -34,7 +34,7 @@ export function Apariencia({ negocio }: { negocio: Negocio }) {
 
   return (
     <section className="tarjeta p-5">
-      <h2 className="font-titulo text-xl font-medium">Apariencia</h2>
+      <h2 className="font-titulo text-xl">Apariencia</h2>
       <p className="mt-1 text-sm text-suave">Así se ve tu local en la carta que abre el cliente con el QR.</p>
 
       <div className="mt-4 grid gap-6 md:grid-cols-[1fr_280px]">
@@ -75,7 +75,7 @@ export function Apariencia({ negocio }: { negocio: Negocio }) {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={logo} alt="" className="h-9 w-9 rounded-lg bg-papel object-contain" />
             )}
-            <p className="truncate font-titulo text-lg font-medium">{nombre || "Tu local"}</p>
+            <p className="truncate font-titulo text-lg">{nombre || "Tu local"}</p>
           </div>
           <div className="tarjeta mt-3 flex items-center gap-2 p-3">
             <div className="flex-1">

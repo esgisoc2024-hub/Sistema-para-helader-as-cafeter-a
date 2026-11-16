@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useSesion } from "@/lib/useSesion";
 import { supabase } from "@/lib/supabase";
 import { PanelContexto } from "@/components/PanelContexto";
+import { Fondo } from "@/components/Fondo";
 import type { Rol } from "@/lib/tipos";
 
 const MENU: { href: string; texto: string; roles: Rol[] }[] = [
@@ -36,10 +37,11 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
   return (
     <PanelContexto.Provider value={{ usuario, negocio }}>
       <div className="min-h-dvh">
-        <header className="no-imprimir sticky top-0 z-20 border-b border-borde bg-crema/95 backdrop-blur">
+        <Fondo url={negocio.portada_url} tipo={negocio.portada_tipo} />
+        <header className="no-imprimir sticky top-0 z-20 bg-crema/60 backdrop-blur-md">
           {/* En el celular el menú baja a su propia fila y se acomoda en varias líneas: nunca queda escondido. */}
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-            <p className="min-w-0 flex-1 truncate font-titulo text-lg font-medium md:flex-none">{negocio.nombre}</p>
+            <p className="min-w-0 flex-1 truncate font-titulo text-lg md:flex-none">{negocio.nombre}</p>
             <button className="shrink-0 text-sm text-suave underline md:order-last" onClick={async () => { await supabase().auth.signOut(); router.replace("/login"); }}>
               Salir
             </button>

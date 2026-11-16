@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { estiloMarca } from "@/lib/color";
+import { Fondo } from "@/components/Fondo";
 import { ETIQUETA_ESTADO, mensajeError, precio, textoOpciones } from "@/lib/formato";
 import type { CartaPublica, EstadoMesaPublico, ProductoPublico } from "@/lib/tipos";
 
@@ -121,41 +122,21 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
           <Link href="/panel/mesas" className="underline">Volver a mesas</Link>
         </div>
       )}
-      {/* Portada: la foto o el video del local, con el nombre encima. Sin portada, cabecera simple. */}
-      {carta.portada_url ? (
-        <header className="relative h-[46dvh] min-h-64 overflow-hidden rounded-b-[32px] bg-tinta">
-          {carta.portada_tipo === "video" ? (
-            <video src={carta.portada_url} className="absolute inset-0 h-full w-full object-cover" autoPlay muted loop playsInline />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={carta.portada_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/20" />
-          <span className="absolute right-4 top-4 rounded-full bg-papel/90 px-3 py-1 text-sm font-medium text-tinta backdrop-blur">Mesa {carta.mesa}</span>
-          <div className="absolute inset-x-0 bottom-0 flex items-end gap-3 p-5 text-white">
-            {carta.logo_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={carta.logo_url} alt="" className="h-14 w-14 shrink-0 rounded-2xl bg-papel object-contain" />
-            )}
-            <h1 className="font-titulo text-4xl font-medium leading-none">{carta.negocio}</h1>
-          </div>
-        </header>
-      ) : (
-        <header className="px-5 pb-2 pt-8 text-center">
-          {carta.logo_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={carta.logo_url} alt="" className="mx-auto mb-3 h-16 w-16 rounded-2xl bg-papel object-contain" />
-          )}
-          <h1 className="font-titulo text-4xl font-medium leading-none">{carta.negocio}</h1>
-          <p className="mt-2 text-sm text-suave">Mesa {carta.mesa}</p>
-        </header>
-      )}
+      <Fondo url={carta.portada_url} tipo={carta.portada_tipo} />
+      <header className="flex items-center gap-3 px-4 pb-1 pt-6">
+        {carta.logo_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={carta.logo_url} alt="" className="h-14 w-14 shrink-0 -rotate-3 rounded-2xl bg-papel object-contain shadow-md" />
+        )}
+        <h1 className="min-w-0 flex-1 font-titulo text-4xl leading-none">{carta.negocio}</h1>
+        <span className="shrink-0 rotate-3 rounded-full bg-choco px-3 py-1.5 text-sm font-extrabold text-white">Mesa {carta.mesa}</span>
+      </header>
 
-      <div className="sticky top-0 z-10 border-b border-borde bg-crema/95 px-4 pb-3 pt-3 backdrop-blur">
-        <div className="grid grid-cols-2 gap-1 rounded-full bg-borde/70 p-1 text-sm font-medium">
+      <div className="sticky top-0 z-10 px-4 pb-3 pt-3 backdrop-blur-md">
+        <div className="grid grid-cols-2 gap-1 rounded-full bg-papel/60 p-1 text-sm font-extrabold">
           {(["carta", "pedido"] as const).map((v) => (
             <button key={v} onClick={() => setVista(v)}
-              className={`rounded-full py-2 ${vista === v ? "bg-papel shadow-sm" : "text-suave"}`}>
+              className={`rounded-full py-2 transition ${vista === v ? "bg-frutilla text-white shadow-sm" : "text-suave"}`}>
               {v === "carta" ? "Carta" : hayPedidos ? `Mi pedido (${estado!.pedidos.length})` : "Mi pedido"}
             </button>
           ))}
@@ -163,7 +144,7 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
         {vista === "carta" && (
           <nav aria-label="Categorías" className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 text-sm">
             {carta.categorias.filter((c) => c.productos.length).map((c) => (
-              <a key={c.id} href={`#cat-${c.id}`} className="shrink-0 rounded-full border border-borde bg-papel px-3.5 py-1.5">{c.nombre}</a>
+              <a key={c.id} href={`#cat-${c.id}`} className="shrink-0 rounded-full bg-papel/85 px-3.5 py-1.5 font-bold transition active:scale-90">{c.nombre}</a>
             ))}
           </nav>
         )}
@@ -173,22 +154,22 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
         <div className="space-y-8 px-4 pt-4">
           {carta.categorias.filter((c) => c.productos.length).map((c) => (
             <section key={c.id} id={`cat-${c.id}`} className="scroll-mt-32">
-              <h2 className="mb-4 font-titulo text-3xl font-medium">{c.nombre}</h2>
+              <h2 className="mb-4 font-titulo text-3xl">{c.nombre}</h2>
               <ul className="grid grid-cols-2 gap-3">
-                {c.productos.map((p) => (
-                  <li key={p.id} className={p.foto_url ? "" : "col-span-2"}>
+                {c.productos.map((p, i) => (
+                  <li key={p.id} className={`animate-entrar ${p.foto_url ? "" : "col-span-2"}`} style={{ animationDelay: `${Math.min(i, 8) * 55}ms` }}>
                     <button onClick={() => (p.grupos.length > 0 ? setEligiendo(p) : agregar(p, [], ""))}
-                      className={`tarjeta relative w-full overflow-hidden text-left active:bg-rubor/40 ${p.foto_url ? "flex h-full flex-col" : "flex items-center gap-3 p-4"}`}>
+                      className={`tarjeta group relative w-full overflow-hidden text-left transition active:scale-[0.97] ${p.foto_url ? "flex h-full flex-col" : "flex items-center gap-3 p-4"}`}>
                       {p.foto_url && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={p.foto_url} alt="" loading="lazy" className="aspect-[4/5] w-full object-cover" />
                       )}
                       <div className={p.foto_url ? "flex-1 p-3 pr-12" : "min-w-0 flex-1"}>
-                        <p className="font-medium leading-snug">{p.nombre}</p>
+                        <p className="text-lg font-extrabold leading-snug">{p.nombre}</p>
                         {p.descripcion && <p className="text-sm text-suave">{p.descripcion}</p>}
-                        <p className="mt-1 text-frutilla">{precio(p.precio)}</p>
+                        <p className="mt-1 font-extrabold text-frutilla">{precio(p.precio)}</p>
                       </div>
-                      <span aria-hidden className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-frutilla text-xl text-white ${p.foto_url ? "absolute bottom-3 right-3" : ""}`}>+</span>
+                      <span aria-hidden className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-frutilla text-2xl font-extrabold text-white transition duration-300 group-active:rotate-180 group-active:scale-125 ${p.foto_url ? "absolute bottom-3 right-3" : ""}`}>+</span>
                       <span className="sr-only">Agregar</span>
                     </button>
                   </li>
@@ -205,7 +186,7 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
               <div className="flex items-center justify-between">
                 <p className="font-semibold">Pedido {i + 1}</p>
                 <span className={`rounded-full px-3 py-1 text-sm font-semibold ${
-                  p.estado === "listo" ? "bg-menta text-white" : p.estado === "entregado" ? "bg-borde" : "bg-limon/30"}`}>
+                  p.estado === "listo" ? "animate-latir bg-menta text-white" : p.estado === "entregado" ? "bg-borde" : "bg-limon/30"}`}>
                   {ETIQUETA_ESTADO[p.estado]}
                 </span>
               </div>
@@ -239,8 +220,8 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
       )}
 
       {unidades > 0 && !verCarrito && (
-        <div className="fixed inset-x-0 bottom-0 p-4">
-          <button onClick={() => setVerCarrito(true)} className="btn-primario mx-auto flex w-full max-w-xl justify-between shadow-lg">
+        <div key={unidades} className="fixed inset-x-0 bottom-0 animate-rebote p-4">
+          <button onClick={() => setVerCarrito(true)} className="btn-primario mx-auto flex w-full max-w-xl justify-between py-4 text-lg">
             <span>Ver pedido · {unidades}</span><span>{precio(totalCarrito)}</span>
           </button>
         </div>
@@ -277,7 +258,7 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
       )}
 
       {aviso && (
-        <div role="status" className={`fixed inset-x-4 top-4 z-50 mx-auto max-w-md rounded-xl px-4 py-3 text-center font-medium text-white shadow-lg ${
+        <div role="status" className={`fixed inset-x-4 top-4 z-50 mx-auto max-w-md animate-bajar rounded-full px-4 py-3 text-center font-extrabold text-white shadow-lg ${
           aviso.tipo === "ok" ? "bg-menta" : "bg-frutilla-osc"}`}>{aviso.texto}</div>
       )}
     </main>
@@ -327,7 +308,7 @@ function ElegirOpciones({ producto, onCerrar, onAgregar }: {
                     <button key={o.id} type="button" onClick={() => alternar(g.id, g.maximo, o.id)} aria-pressed={activo}
                       disabled={!activo && lleno}
                       className={`rounded-xl border px-3 py-3 text-left text-sm font-medium transition disabled:opacity-40 ${
-                        activo ? "border-frutilla bg-frutilla/10 text-frutilla-osc" : "border-borde bg-papel"}`}>
+                        activo ? "scale-[1.03] border-frutilla bg-rubor text-frutilla-osc" : "border-borde bg-papel"}`}>
                       {o.nombre}
                       {Number(o.precio_extra) > 0 && <span className="block text-xs font-normal text-suave">+ {precio(o.precio_extra)}</span>}
                     </button>
@@ -352,9 +333,9 @@ function Hoja({ titulo, onCerrar, children }: { titulo: string; onCerrar: () => 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-tinta/40" onClick={onCerrar}>
       <div role="dialog" aria-modal aria-label={titulo} onClick={(e) => e.stopPropagation()}
-        className="max-h-[85dvh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-crema p-5 pb-8">
+        className="max-h-[85dvh] w-full max-w-xl animate-subir overflow-y-auto rounded-t-[32px] bg-crema p-5 pb-8">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-titulo text-xl font-medium">{titulo}</h2>
+          <h2 className="font-titulo text-xl">{titulo}</h2>
           <button onClick={onCerrar} aria-label="Cerrar" className="h-9 w-9 rounded-full border border-borde bg-papel">✕</button>
         </div>
         {children}

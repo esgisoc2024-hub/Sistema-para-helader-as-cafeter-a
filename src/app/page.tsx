@@ -1,3 +1,4 @@
+import { Fondo } from "@/components/Fondo";
 import Link from "next/link";
 
 const PUNTOS = [
@@ -10,8 +11,9 @@ const PUNTOS = [
 export default function Inicio() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12 sm:py-20">
+      <Fondo />
       <p className="text-sm font-semibold uppercase tracking-wide text-frutilla">Mesa Dulce</p>
-      <h1 className="mt-2 font-titulo text-4xl font-medium leading-tight sm:text-5xl">
+      <h1 className="mt-2 font-titulo text-4xl leading-tight sm:text-5xl">
         Que el pedido de la mesa llegue rápido y sin errores a la barra.
       </h1>
       <p className="mt-4 max-w-xl text-lg text-suave">
