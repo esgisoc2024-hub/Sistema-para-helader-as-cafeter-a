@@ -128,7 +128,7 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
           // eslint-disable-next-line @next/next/no-img-element
           <img src={carta.logo_url} alt="" className="h-14 w-14 shrink-0 -rotate-3 rounded-2xl bg-papel object-contain shadow-md" />
         )}
-        <h1 className="min-w-0 flex-1 font-titulo text-4xl leading-none">{carta.negocio}</h1>
+        <h1 className="min-w-0 flex-1 sobre-fondo font-titulo text-4xl leading-none">{carta.negocio}</h1>
         <span className="shrink-0 rotate-3 rounded-full bg-choco px-3 py-1.5 text-sm font-extrabold text-white">Mesa {carta.mesa}</span>
       </header>
 
@@ -154,7 +154,7 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
         <div className="space-y-8 px-4 pt-4">
           {carta.categorias.filter((c) => c.productos.length).map((c) => (
             <section key={c.id} id={`cat-${c.id}`} className="scroll-mt-32">
-              <h2 className="mb-4 font-titulo text-3xl">{c.nombre}</h2>
+              <h2 className="sobre-fondo mb-4 font-titulo text-3xl">{c.nombre}</h2>
               <ul className="grid grid-cols-2 gap-3">
                 {c.productos.map((p, i) => (
                   <li key={p.id} className={`animate-entrar ${p.foto_url ? "" : "col-span-2"}`} style={{ animationDelay: `${Math.min(i, 8) * 55}ms` }}>

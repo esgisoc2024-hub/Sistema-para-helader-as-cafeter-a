@@ -40,17 +40,18 @@ body {
 
 /* Títulos gorditos: una sola variante, sin negrita sintética. */
 .font-titulo { font-weight: 400; letter-spacing: 0.01em; }
+/* Halo claro para que los títulos se lean sobre la foto de fondo. */
+.sobre-fondo { text-shadow: 0 0 10px var(--color-crema), 0 0 22px var(--color-crema), 0 0 2px var(--color-crema); }
 
 :focus-visible { outline: 2px solid var(--color-frutilla); outline-offset: 2px; }
 
 /* ── Trasfondo difuminado ── */
 .fondo { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: var(--color-crema); pointer-events: none; }
-/* Se dibuja chico y se agranda: el desenfoque sale barato incluso con video. */
-.fondo-media { position: absolute; left: 0; top: 0; width: 25%; height: 25%; object-fit: cover;
-  transform-origin: top left; transform: scale(4.4) translate(-4%, -4%); filter: blur(9px) saturate(1.25); }
+/* La foto se ve casi nítida: apenas suavizada y con un velo claro para que el texto se lea. */
+.fondo-media { position: absolute; inset: -2%; width: 104%; height: 104%; object-fit: cover; filter: blur(2px); }
 .fondo-bola { position: absolute; width: 70vmax; height: 70vmax; max-width: 620px; max-height: 620px; border-radius: 50%;
   filter: blur(70px); opacity: 0.55; animation: flotar 17s ease-in-out infinite alternate; }
-.fondo-velo { position: absolute; inset: 0; background: color-mix(in srgb, var(--color-crema) 58%, transparent); }
+.fondo-velo { position: absolute; inset: 0; background: color-mix(in srgb, var(--color-crema) 42%, transparent); }
 .fondo-velo-suave { background: color-mix(in srgb, var(--color-crema) 45%, transparent); }
 
 @media (prefers-reduced-motion: reduce) {
