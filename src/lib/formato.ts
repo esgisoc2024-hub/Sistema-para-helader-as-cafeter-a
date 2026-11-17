@@ -26,6 +26,10 @@ export function mensajeError(e: unknown): string {
   if (m.includes("cobro_mayor_a_la_deuda")) return "Es más de lo que debe ese cliente.";
   if (m.includes("cliente_invalido")) return "Ese cliente no existe.";
   if (m.includes("violates foreign key constraint") && m.includes("deud")) return "Tiene cobros registrados: anulá los cobros antes de borrarlo.";
+  if (m.includes("ya_liquidado")) return "Ese mes ya está liquidado para este empleado.";
+  if (m.includes("sueldo_con_pagos")) return "Ese sueldo ya tiene pagos: anulá los pagos en Cuentas por pagar antes.";
+  if (m.includes("total_negativo")) return "Los descuentos superan el sueldo del mes.";
+  if (m.includes("empleados_check") || m.includes("comision_valor")) return "El porcentaje de comisión no puede ser mayor a 100.";
   if (m.includes("mesa_invalida")) return "Este QR no corresponde a una mesa activa.";
   if (m.includes("codigo_invalido")) return "El código del equipo no existe. Pedíselo al dueño.";
   if (m.includes("ya_tiene_negocio")) return "Tu usuario ya pertenece a un negocio.";
