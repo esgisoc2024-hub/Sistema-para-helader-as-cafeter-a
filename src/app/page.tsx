@@ -4,12 +4,38 @@ import "@fontsource-variable/fraunces/opsz.css";
 import "@fontsource-variable/fraunces/opsz-italic.css";
 import "@fontsource/caveat/500.css";
 import { Movimiento } from "@/components/Movimiento";
+import { Recorrido, type Momento } from "@/components/Recorrido";
+// Fotos propias del cliente
 import charla from "../../public/inicio/charla.webp";
 import terraza from "../../public/inicio/mesa-terraza.webp";
 import celular from "../../public/inicio/mesa-celular.webp";
+// Fotos de Unsplash (licencia Unsplash: uso comercial libre). Créditos en el pie y en docs/creditos-fotos.md
+import gelateria from "../../public/inicio/gelateria.webp";
+import latte from "../../public/inicio/latte-barista.webp";
+import conoCuchara from "../../public/inicio/cono-cuchara.webp";
+import conoCalle from "../../public/inicio/cono-calle.webp";
+import conoFlorencia from "../../public/inicio/cono-florencia.webp";
+import conoLimon from "../../public/inicio/cono-limon.webp";
+import conoChocolate from "../../public/inicio/cono-chocolate.webp";
+import cafeBiscotti from "../../public/inicio/cafe-biscotti.webp";
+import barraCafe from "../../public/inicio/barra-cafe.webp";
+import salonCafe from "../../public/inicio/salon-cafe.webp";
 
 // Mesa 1 de "Heladería Demo": carta de prueba en modo demo (no crea pedidos reales).
 const DEMO = "/m/e6b698b6ab?demo=1";
+
+const SABORES = ["Pistacho", "Flat white", "Dulce de leche", "Cortado", "Limón a la albahaca", "Submarino", "Chocolate amargo", "Affogato", "Sambayón", "Medialunas", "Frutilla a la crema", "Cappuccino"];
+
+const MOMENTOS: Momento[] = [
+  { sobre: "Se sienta", titulo: "Abre tu carta con el QR.", texto: "Sin descargar nada. Tu carta con fotos, tus colores y tu logo, en el celular de cada cliente.",
+    foto: cafeBiscotti, alt: "", pantalla: "carta" },
+  { sobre: "Elige", titulo: "Pistacho, dulce de leche y frutilla.", texto: "Sabores, tipo de leche, tamaño y extras. Lo que no hay, no aparece: un toque en “sin stock” y listo.",
+    foto: conoFlorencia, alt: "", pantalla: "sabores" },
+  { sobre: "Confirma", titulo: "Y sigue su pedido desde la mesa.", texto: "Recibido, preparando, en camino. Nadie levanta la mano para preguntar cuánto falta.",
+    foto: latte, alt: "", pantalla: "enviado" },
+  { sobre: "Suena la barra", titulo: "La campanita nunca se apaga.", texto: "La comanda llega al instante, con sonido. Y si una mesa llama al mozo, salta un cartel que no se va hasta que alguien va.",
+    foto: barraCafe, alt: "", pantalla: "barra" },
+];
 
 const DOLORES = [
   { hoy: "Quince minutos esperando que alguien tome el pedido.", con: "El cliente pide desde la mesa apenas se sienta, y la comanda suena en la barra en ese momento." },
@@ -17,10 +43,12 @@ const DOLORES = [
   { hoy: "La mesa 4 levanta la mano y nadie la ve.", con: "La barra recibe un cartel grande con sonido: “Mesa 4 llama al mozo”. Hasta que alguien va." },
 ];
 
-const PASOS = [
-  { n: "I", titulo: "Escanea y pide", texto: "El cliente abre tu carta con el QR de su mesa, elige sabores, leche o tamaño y confirma. Sin descargar nada." },
-  { n: "II", titulo: "Suena la campanita", texto: "La comanda aparece en la barra con la mesa, los sabores y los minutos de espera. La campanita siempre está encendida." },
-  { n: "III", titulo: "Cobrás y sabés", texto: "La mesa avisa cuando quiere la cuenta. Al cerrar el día ves qué se vendió y cuánto esperó la gente." },
+const GALERIA = [
+  { foto: conoCalle, alt: "Mano sosteniendo un cucurucho en una calle de Siena", nota: "una vuelta, un cucurucho", giro: -5, prof: 0.14, clase: "lp-g1" },
+  { foto: charla, alt: "Dos personas conversando con un café bajo una lámpara cálida", nota: "café & charla ♡", giro: 3, prof: 0.05, clase: "lp-g2" },
+  { foto: conoLimon, alt: "Cucurucho de helado de limón apoyado en un vaso sobre mármol", nota: "limón, siempre", giro: -2, prof: 0.2, clase: "lp-g3" },
+  { foto: terraza, alt: "Mesa en una terraza al atardecer con dos cafés y medialunas", nota: "una mesa, dos historias", giro: 4, prof: 0.09, clase: "lp-g4" },
+  { foto: conoChocolate, alt: "Cucurucho de chocolate y vainilla", nota: "chocolate & vainilla", giro: -4, prof: 0.17, clase: "lp-g5" },
 ];
 
 const ROLES = [
@@ -46,6 +74,8 @@ const PREGUNTAS = [
   { p: "¿Hay permanencia?", r: "No. Se paga mes a mes y lo das de baja cuando quieras." },
 ];
 
+const CREDITOS = ["Green Liu", "Di Bella Coffee", "Gabriela Portilho", "Vanessa", "carlos lugo", "Dimitar Krastev", "Alexis Rodriguez", "Sadia Alam", "Jonathan Borba", "Petr Sevcovic"];
+
 export default function Inicio() {
   return (
     <div className="lp">
@@ -68,12 +98,17 @@ export default function Inicio() {
       </header>
 
       <main>
-        {/* ── Portada: noche de café, la foto respira y el pedido se va solo a la barra ── */}
+        {/* ── Portada en capas: fondo, fotos flotando a distintas distancias y avisos al frente ── */}
         <section className="lp-portada">
-          <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-28 md:grid-cols-[1.05fr_1fr] md:pt-32">
+          <div aria-hidden className="lp-portada-fondo lp-capa" style={{ "--d": -14 } as React.CSSProperties}>
+            <Image src={gelateria} alt="" priority sizes="100vw" className="lp-respira h-full w-full object-cover" />
+          </div>
+          <div aria-hidden className="lp-portada-velo" />
+
+          <div className="relative z-10 mx-auto grid min-h-[100svh] max-w-6xl items-center gap-10 px-4 pb-16 pt-28 md:grid-cols-[1fr_1.05fr]">
             <div className="lp-entrada">
-              <p className="lp-mano text-2xl text-[var(--lp-laton)]">café, charlas & mesas bien atendidas.</p>
-              <h1 className="lp-titulo mt-3 text-[2.9rem] leading-[1.02] sm:text-6xl md:text-[4.3rem]">
+              <p className="lp-mano text-2xl text-[var(--lp-laton)]">helado, café & mesas bien atendidas.</p>
+              <h1 className="lp-titulo mt-3 text-[2.9rem] leading-[1.02] text-white sm:text-6xl md:text-[4.4rem]">
                 Que nadie en tu salón <em>espere</em> de más.
               </h1>
               <p className="mt-6 max-w-md text-lg leading-relaxed text-white/75">
@@ -87,60 +122,62 @@ export default function Inicio() {
               <p className="mt-6 text-sm tracking-wide text-white/50">Sin instalar nada · Sin permanencia · Con tu marca</p>
             </div>
 
-            <div className="relative mx-auto w-full max-w-[440px]">
-              <figure className="lp-arco lp-entrada" style={{ animationDelay: "0.15s" }}>
-                <div data-paralaje="0.06" className="absolute -inset-y-[8%] inset-x-0">
-                  <Image src={charla} alt="Dos personas conversando con un café en una mesa redonda, bajo una lámpara cálida" priority
-                    sizes="(min-width: 768px) 440px, 90vw" className="lp-respira h-full w-full object-cover" />
+            <div className="lp-escena" aria-hidden>
+              <div className="lp-capa lp-carta lp-carta-atras" style={{ "--d": 10 } as React.CSSProperties}>
+                <div className="lp-flota" style={{ animationDelay: "-2s" }}>
+                  <Image src={latte} alt="" sizes="260px" className="h-full w-full object-cover" />
                 </div>
-              </figure>
-              {/* Pedido que entra: aparece sobre la foto y "viaja" hacia la barra */}
-              <div aria-hidden className="lp-noti lp-noti-1">
-                <span className="lp-punto" /> <b>Mesa 4</b> · pedido enviado
-                <span className="block text-[12px] text-[var(--lp-suave)]">2 cafés · 1 tostado</span>
               </div>
-              <div aria-hidden className="lp-noti lp-noti-2">
+              <div className="lp-capa lp-carta lp-carta-centro" style={{ "--d": 22 } as React.CSSProperties}>
+                <div className="lp-flota">
+                  <Image src={charla} alt="" priority sizes="(min-width: 768px) 320px, 60vw" className="h-full w-full object-cover" />
+                </div>
+              </div>
+              <div className="lp-capa lp-carta lp-carta-frente" style={{ "--d": 38 } as React.CSSProperties}>
+                <div className="lp-flota" style={{ animationDelay: "-4s" }}>
+                  <Image src={conoCuchara} alt="" sizes="200px" className="h-full w-full object-cover" />
+                </div>
+              </div>
+
+              {/* Trazos a mano, como las ilustraciones de las fotos */}
+              <svg className="lp-capa lp-trazos" style={{ "--d": 30 } as React.CSSProperties} viewBox="0 0 400 460" fill="none">
+                <path className="lp-trazo" pathLength={1} d="M70 120c-8-14 6-22 0-36s8-20 2-34" style={{ animationDelay: "1.2s" }} />
+                <path className="lp-trazo" pathLength={1} d="M88 118c-8-14 6-22 0-36s8-20 2-34" style={{ animationDelay: "1.4s" }} />
+                <path className="lp-trazo" pathLength={1} d="M60 300c-10-14-30-4-22 10l22 20 22-20c8-14-12-24-22-10z" style={{ animationDelay: "1.8s" }} />
+                <path className="lp-trazo" pathLength={1} d="M350 300l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" style={{ animationDelay: "2.4s" }} />
+                <path className="lp-trazo" pathLength={1} d="M20 230l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" style={{ animationDelay: "2.6s" }} />
+              </svg>
+
+              <div className="lp-capa lp-noti lp-noti-1" style={{ "--d": 50 } as React.CSSProperties}>
+                <span className="lp-punto" /> <b>Mesa 4</b> · pedido enviado
+                <span className="block text-[12px] text-[var(--lp-suave)]">1 cucurucho · 2 flat white</span>
+              </div>
+              <div className="lp-capa lp-noti lp-noti-2" style={{ "--d": 56 } as React.CSSProperties}>
                 <span className="lp-campanita">🔔</span> <b>Comanda en la barra</b>
               </div>
-              <p aria-hidden className="lp-mano lp-nota-foto">cada mesa, a tiempo ♡</p>
+              <p className="lp-capa lp-mano lp-nota-foto" style={{ "--d": 44 } as React.CSSProperties}>cada mesa, a tiempo ♡</p>
             </div>
           </div>
           <div aria-hidden className="lp-bajar hidden md:block">deslizá</div>
         </section>
 
+        {/* ── Cinta de sabores ── */}
+        <div aria-hidden className="lp-cinta">
+          <div className="lp-cinta-pista">
+            {[...SABORES, ...SABORES].map((s, i) => <span key={i}>{s}<i>✦</i></span>)}
+          </div>
+        </div>
+
         {/* ── Frase ── */}
         <section className="mx-auto max-w-4xl px-4 py-24 text-center">
-          <p data-revelar className="lp-titulo text-3xl leading-snug text-[var(--lp-espresso)] sm:text-[2.6rem]">
+          <p data-revelar className="lp-titulo text-3xl leading-snug sm:text-[2.6rem]">
             Los lugares cambian. <em>La sensación de ser bien atendido</em> es la que hace volver.
           </p>
         </section>
 
-        {/* ── En la mesa: foto con movimiento + la secuencia del pedido ── */}
-        <section className="mx-auto grid max-w-6xl items-center gap-14 px-4 pb-24 md:grid-cols-2">
-          <div data-revelar className="relative mx-auto w-full max-w-[400px]">
-            <div className="lp-marco">
-              <div data-paralaje="0.08" className="absolute -inset-y-[10%] inset-x-0">
-                <Image src={celular} alt="Un celular sobre una mesa de madera mostrando la carta, junto a una copa" sizes="(min-width: 768px) 400px, 90vw"
-                  className="lp-paneo h-full w-full object-cover" />
-              </div>
-              <div aria-hidden className="lp-luz" />
-            </div>
-            <ol aria-hidden className="lp-secuencia">
-              <li style={{ animationDelay: "0s" }}>Abre la carta</li>
-              <li style={{ animationDelay: "2s" }}>Elige sabores</li>
-              <li style={{ animationDelay: "4s" }}>Confirma</li>
-              <li style={{ animationDelay: "6s" }}>🔔 Suena en la barra</li>
-            </ol>
-          </div>
-          <div data-revelar>
-            <p className="lp-sobre">En la mesa</p>
-            <h2 className="lp-titulo mt-3 text-4xl leading-tight sm:text-5xl">La carta en el celular. <em>El pedido, en la barra.</em></h2>
-            <p className="mt-5 text-lg leading-relaxed text-[var(--lp-suave)]">
-              Tu carta con fotos, tus colores y tu logo, en el celular de cada cliente. Elige, confirma y sigue el estado de su pedido
-              sin tener que levantar la mano. Si necesita algo más, llama al mozo con un toque.
-            </p>
-            <Link href={DEMO} className="lp-btn lp-btn-oscuro mt-8">Hacé un pedido de prueba</Link>
-          </div>
+        {/* ── Un pedido en cuatro tiempos (sección fija con scroll) ── */}
+        <section id="como-funciona" aria-label="Cómo funciona" className="scroll-mt-0">
+          <Recorrido momentos={MOMENTOS} />
         </section>
 
         {/* ── Problemas del salón ── */}
@@ -162,37 +199,58 @@ export default function Inicio() {
           </div>
         </section>
 
-        {/* ── Cómo funciona ── */}
-        <section id="como-funciona" className="scroll-mt-20 mx-auto max-w-6xl px-4 py-24">
-          <div className="grid gap-14 md:grid-cols-[0.9fr_1.1fr] md:items-center">
-            <div data-revelar className="lp-polaroid mx-auto">
-              <div className="relative aspect-[735/1000] overflow-hidden">
-                <Image src={terraza} alt="Mesa en una terraza al atardecer con dos cafés, un libro abierto y medialunas" sizes="(min-width: 768px) 380px, 80vw"
-                  className="lp-respira h-full w-full object-cover object-top" />
-              </div>
-              <p className="lp-mano mt-3 text-center text-2xl text-[var(--lp-cacao)]">Una mesa. Muchas historias. ♡</p>
-            </div>
-            <div>
-              <p data-revelar className="lp-sobre">Cómo funciona</p>
-              <h2 data-revelar className="lp-titulo mt-3 text-4xl leading-tight sm:text-5xl">Tres pasos, <em>cero corridas.</em></h2>
-              <ol className="mt-10 space-y-9">
-                {PASOS.map((p, i) => (
-                  <li key={p.titulo} data-revelar style={{ transitionDelay: `${i * 0.12}s` }} className="grid grid-cols-[3.5rem_1fr] gap-4">
-                    <span aria-hidden className="lp-titulo pt-1 text-3xl italic text-[var(--lp-laton)]">{p.n}</span>
-                    <div className="border-t border-[var(--lp-linea)] pt-4">
-                      <p className="lp-titulo text-2xl">{p.titulo}</p>
-                      <p className="mt-2 leading-relaxed text-[var(--lp-suave)]">{p.texto}</p>
+        {/* ── Galería en distintos planos ── */}
+        <section className="lp-galeria">
+          <div className="mx-auto max-w-6xl px-4 pt-24 text-center">
+            <p data-revelar className="lp-sobre">Lugares que dan ganas de volver</p>
+            <h2 data-revelar className="lp-titulo mx-auto mt-3 max-w-2xl text-4xl leading-tight sm:text-5xl">Cada mesa <em>cuenta una historia.</em></h2>
+          </div>
+          <div className="lp-galeria-escena">
+            {GALERIA.map((g) => (
+              <figure key={g.nota} className={`lp-galeria-item ${g.clase}`}>
+                <div data-paralaje={g.prof}>
+                  <div data-revelar className="lp-polaroid" style={{ "--giro": `${g.giro}deg` } as React.CSSProperties}>
+                    <div className="relative aspect-[4/5] overflow-hidden">
+                      <Image src={g.foto} alt={g.alt} fill sizes="(min-width: 768px) 300px, 45vw" className="lp-respira object-cover" />
                     </div>
-                  </li>
-                ))}
-              </ol>
+                    <figcaption className="lp-mano mt-2 text-center text-xl text-[var(--lp-cacao)]">{g.nota}</figcaption>
+                  </div>
+                </div>
+              </figure>
+            ))}
+          </div>
+        </section>
+
+        {/* ── En la mesa: foto del celular ── */}
+        <section className="mx-auto grid max-w-6xl items-center gap-14 px-4 py-24 md:grid-cols-2">
+          <div data-revelar className="relative mx-auto w-full max-w-[380px]">
+            <div className="lp-marco">
+              <div data-paralaje="0.08" className="absolute -inset-y-[10%] inset-x-0">
+                <Image src={celular} alt="Un celular sobre una mesa de madera mostrando la carta" sizes="(min-width: 768px) 380px, 90vw" className="lp-paneo h-full w-full object-cover" />
+              </div>
+              <div aria-hidden className="lp-luz" />
             </div>
+            <div aria-hidden className="lp-sello">
+              <Image src={conoLimon} alt="" sizes="140px" className="h-full w-full object-cover" />
+            </div>
+          </div>
+          <div data-revelar>
+            <p className="lp-sobre">Probalo ahora</p>
+            <h2 className="lp-titulo mt-3 text-4xl leading-tight sm:text-5xl">Sentate en la mesa 1 <em>de nuestra heladería de prueba.</em></h2>
+            <p className="mt-5 text-lg leading-relaxed text-[var(--lp-suave)]">
+              Abrí la carta como lo haría tu cliente: elegí sabores, mirá cómo se arma el pedido y sentí lo simple que es.
+              Es una demo: no se envía nada de verdad.
+            </p>
+            <Link href={DEMO} className="lp-btn lp-btn-oscuro mt-8">Abrir la carta de prueba</Link>
           </div>
         </section>
 
         {/* ── La barra: campanita siempre activa y cartel de mesas que llaman ── */}
-        <section id="barra" className="lp-oscuro scroll-mt-20 py-24">
-          <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 md:grid-cols-[1fr_1.1fr]">
+        <section id="barra" className="lp-oscuro relative scroll-mt-20 overflow-hidden py-24">
+          <div aria-hidden className="lp-barra-fondo">
+            <Image src={barraCafe} alt="" sizes="50vw" className="h-full w-full object-cover" />
+          </div>
+          <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-4 md:grid-cols-[1fr_1.1fr]">
             <div data-revelar>
               <p className="lp-sobre text-[var(--lp-laton)]">Para la barra</p>
               <h2 className="lp-titulo mt-3 text-4xl leading-tight sm:text-5xl">Ninguna mesa <em>queda esperando.</em></h2>
@@ -217,20 +275,18 @@ export default function Inicio() {
                 <span className="lp-cartel-voy">Voy</span>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2 text-[12px]">
-                {[
-                  ["Nuevos", [["Mesa 7", "1 × Vasito 1/4 kg", "Pistacho · Dulce de leche"]]],
-                  ["Preparando", [["Mesa 2", "2 × Café con leche", "Leche de almendras"]]],
-                  ["Para entregar", [["Mesa 5", "1 × Submarino", ""]]],
-                ].map(([titulo, items], c) => (
-                  <div key={titulo as string} className="rounded-2xl bg-[var(--lp-lino)] p-2">
-                    <p className="px-1 text-[11px] tracking-wider text-[var(--lp-suave)] uppercase">{titulo as string}</p>
-                    {(items as string[][]).map(([m, i, o]) => (
-                      <div key={m} className={`mt-2 rounded-xl bg-white p-2 ${c === 0 ? "lp-comanda" : ""}`}>
-                        <p className="lp-titulo text-base">{m}</p>
-                        <p className="font-bold">{i}</p>
-                        {o && <p className="text-[var(--lp-suave)]">{o}</p>}
-                      </div>
-                    ))}
+                {([
+                  ["Nuevos", "Mesa 7", "1 × Vasito 1/4 kg", "Pistacho · Dulce de leche"],
+                  ["Preparando", "Mesa 2", "2 × Flat white", "Leche de almendras"],
+                  ["Para entregar", "Mesa 5", "1 × Affogato", ""],
+                ] as const).map(([titulo, m, i, o], c) => (
+                  <div key={titulo} className="rounded-2xl bg-[var(--lp-lino)] p-2">
+                    <p className="px-1 text-[11px] tracking-wider text-[var(--lp-suave)] uppercase">{titulo}</p>
+                    <div className={`mt-2 rounded-xl bg-white p-2 ${c === 0 ? "lp-comanda" : ""}`}>
+                      <p className="lp-titulo text-base">{m}</p>
+                      <p className="font-bold">{i}</p>
+                      {o && <p className="text-[var(--lp-suave)]">{o}</p>}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -297,8 +353,8 @@ export default function Inicio() {
 
         {/* ── Cierre ── */}
         <section className="lp-cierre">
-          <Image src={charla} alt="" aria-hidden fill sizes="100vw" className="lp-respira object-cover" />
-          <div className="relative mx-auto max-w-3xl px-4 py-28 text-center">
+          <Image src={salonCafe} alt="" aria-hidden fill sizes="100vw" className="lp-respira object-cover" />
+          <div className="relative mx-auto max-w-3xl px-4 py-32 text-center">
             <p className="lp-mano text-3xl text-[var(--lp-laton)]">los lugares cambian, la sensación queda.</p>
             <h2 className="lp-titulo mt-3 text-4xl text-white sm:text-6xl">Tu próximo sábado, <em>sin mesas esperando.</em></h2>
             <div className="mt-10 flex flex-wrap justify-center gap-3">
@@ -317,6 +373,7 @@ export default function Inicio() {
             <Link href="/login" className="hover:text-white">Ingresar</Link>
             <Link href="/login?modo=registro" className="hover:text-white">Crear mi local</Link>
           </span>
+          <p className="w-full text-xs text-white/35">Fotos: {CREDITOS.join(", ")} en Unsplash.</p>
         </div>
       </footer>
     </div>

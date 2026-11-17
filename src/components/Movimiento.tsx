@@ -37,7 +37,23 @@ export function Movimiento() {
     mover();
     addEventListener("scroll", alMover, { passive: true });
     addEventListener("resize", alMover);
-    return () => { obs.disconnect(); removeEventListener("scroll", alMover); removeEventListener("resize", alMover); cancelAnimationFrame(cuadro); };
+
+    // Profundidad con el mouse: las capas de la portada (.lp-capa) leen --mx y --my (de -1 a 1).
+    let cuadroMouse = 0;
+    const alPuntero = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" || cuadroMouse) return;
+      cuadroMouse = requestAnimationFrame(() => {
+        cuadroMouse = 0;
+        raiz.style.setProperty("--mx", ((e.clientX / innerWidth) * 2 - 1).toFixed(3));
+        raiz.style.setProperty("--my", ((e.clientY / innerHeight) * 2 - 1).toFixed(3));
+      });
+    };
+    addEventListener("pointermove", alPuntero, { passive: true });
+
+    return () => {
+      obs.disconnect(); removeEventListener("scroll", alMover); removeEventListener("resize", alMover); removeEventListener("pointermove", alPuntero);
+      cancelAnimationFrame(cuadro); cancelAnimationFrame(cuadroMouse);
+    };
   }, []);
   return null;
 }
