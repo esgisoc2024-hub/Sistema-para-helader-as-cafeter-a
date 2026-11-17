@@ -231,5 +231,32 @@ set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
 select count(*) = 0 as mozo_no_ve_sueldos from empleados;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.falla(format($q$ select public.calcular_sueldo(%L, current_date) $q$, :'juan')) as otro_no_calcula;
+-- ── Etapa 5: márgenes y resultado ──
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+insert into producto_costos (producto_id, negocio_id, costo) values (:'vasito', :'neg_a', 2400);
+update productos set precio = 6600 where id = :'vasito';
+select (x->>'margen_pct')::numeric = round((6600 - 2400) / 6600.0 * 100, 1) and (x->>'precio_anterior')::numeric = 6000
+       and (x->>'unidades')::int = 4 and (x->>'ganancia')::numeric = 24000 - 4 * 2400 as margen_ok
+  from jsonb_array_elements(public.margenes(30)->'productos') x where x->>'id' = :'vasito';
+select (public.margenes(30)->>'margen_minimo')::int = 50 as margen_minimo_ok;
+update negocios set margen_minimo = 60;
+select (public.margenes(30)->>'margen_minimo')::int = 60 as duenia_cambia_minimo;
+-- el mozo ve la carta pero no los costos ni el historial
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+select count(*) > 0 and (select count(*) from producto_costos) = 0 and (select count(*) from precios_historial) = 0 as mozo_sin_costos from productos;
+select pg_temp.falla($q$ select public.margenes(30) $q$) as mozo_no_ve_margenes;
+-- resultado: ventas 15.800 + 12.000 + 6.000 (fiado) = 33.800; otros ingresos 8.000 (encargo);
+-- gastos del mes: hielo 1.500, alquiler 400.000, sueldo Juan 460.300 (pedido semanal es de hace 20 días)
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select public.registrar_movimiento('egreso', 'Retiro', 30000, 'efectivo', 'Retiro del dueño') is not null;
+select (r->>'ventas')::numeric = 33800 and (r->>'fiado')::numeric = 6000 and (r->>'otros_ingresos')::numeric = 8000 as ingresos_ok,
+       (r->>'retiros')::numeric = 30000 as retiros_aparte,
+       (r->>'te_deben')::numeric = 5000 as te_deben_ok
+  from public.resultado_mes(current_date) r;
+select (r->>'resultado')::numeric = (r->>'ventas')::numeric + (r->>'otros_ingresos')::numeric - (r->>'total_gastos')::numeric
+       and (r->>'sueldos_sin_liquidar')::numeric > 0 and r ? 'anterior' as resultado_ok
+  from public.resultado_mes(current_date) r;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.falla($q$ select public.resultado_mes(current_date) $q$) as basico_sin_resultado;
 reset role;
 select 'TODO OK' as resultado;

@@ -26,6 +26,16 @@ Que el dueño del local sepa si gana o pierde plata, sin planillas aparte, y ten
 4. Empleados y sueldos.
 5. Precios y márgenes + Resultado.
 
+## Estado
+Las cinco etapas están construidas (17/11/2026). Pendiente: probar con un local real.
+
+## Decisiones tomadas durante la construcción
+- Los sueldos son mensuales; la comisión de un mozo incluye las mesas que fió.
+- El costo de cada producto se guarda aparte (tabla producto_costos) para que el personal no lo vea.
+- El resultado del mes cuenta las ventas al cerrar la mesa (también las fiadas) y los gastos por su fecha, estén pagados o no.
+  Los retiros del dueño y el "aporte de cambio" no cuentan como gasto ni como ingreso. Avisa los sueldos sin liquidar.
+- Los extras con precio (ej. leche de almendras) no tienen costo propio: el margen se calcula sobre el costo del producto.
+
 ## Fuera de alcance
 Facturación electrónica, contabilidad formal, costeo por receta.
 

@@ -5,12 +5,14 @@ import { usePathname } from "next/navigation";
 import { usePanel } from "@/components/PanelContexto";
 
 const SECCIONES = [
+  { href: "/panel/administracion/resultado", texto: "Resultado" },
   { href: "/panel/administracion/caja", texto: "Caja" },
   { href: "/panel/administracion/libro", texto: "Libro diario" },
   { href: "/panel/administracion/cobrar", texto: "Cuentas por cobrar" },
   { href: "/panel/administracion/pagar", texto: "Cuentas por pagar" },
   { href: "/panel/administracion/proveedores", texto: "Proveedores" },
   { href: "/panel/administracion/empleados", texto: "Empleados" },
+  { href: "/panel/administracion/margenes", texto: "Precios y márgenes" },
 ];
 
 const INCLUYE = [
@@ -57,7 +59,7 @@ export default function AdministracionLayout({ children }: { children: React.Rea
         {SECCIONES.map((s) => (
           <Link key={s.href} href={s.href}
             className={`rounded-full px-4 py-2 text-sm font-extrabold transition ${
-              ruta.startsWith(s.href) || (ruta === "/panel/administracion" && s.href.endsWith("/caja")) ? "bg-frutilla text-white" : "bg-papel/85"}`}>
+              ruta.startsWith(s.href) || (ruta === "/panel/administracion" && s.href.endsWith("/resultado")) ? "bg-frutilla text-white" : "bg-papel/85"}`}>
             {s.texto}
           </Link>
         ))}
