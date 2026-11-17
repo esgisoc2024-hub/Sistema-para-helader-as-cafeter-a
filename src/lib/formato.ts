@@ -16,6 +16,9 @@ export function mensajeError(e: unknown): string {
   if (m.includes("opcion_sin_stock")) return "Una de las opciones se acaba de agotar. Elegí otra.";
   if (m.includes("demasiados_pedidos")) return "Hiciste muchos pedidos seguidos. Esperá un momento.";
   if (m.includes("local_suspendido")) return "El local no está tomando pedidos por acá en este momento. Pedile al personal.";
+  if (m.includes("caja_ya_abierta")) return "Ya hay una caja abierta. Cerrala antes de abrir otra.";
+  if (m.includes("sin_caja_abierta")) return "No hay ninguna caja abierta.";
+  if (m.includes("no_se_puede_borrar")) return "Ese movimiento es de una caja ya cerrada y no se puede borrar.";
   if (m.includes("mesa_invalida")) return "Este QR no corresponde a una mesa activa.";
   if (m.includes("codigo_invalido")) return "El código del equipo no existe. Pedíselo al dueño.";
   if (m.includes("ya_tiene_negocio")) return "Tu usuario ya pertenece a un negocio.";

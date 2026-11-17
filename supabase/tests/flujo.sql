@@ -109,5 +109,35 @@ reset role; set role authenticated; set request.jwt.claim.sub = '00000000-0000-0
 select public.admin_actualizar_local(:'neg_a', 'activo', '11-5555-0000', '2026-12-10', null);
 reset role; set role anon; reset request.jwt.claim.sub;
 select public.carta_mesa(:'mesa1') ? 'categorias' as reactivado_ok;
+-- ── Etapa 1 Premium: caja y libro diario ──
+reset role; set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.falla($q$ select public.abrir_caja(10000) $q$) as basico_no_abre_caja;
+select pg_temp.falla($q$ update negocios set plan = 'premium' $q$) as duenia_no_se_pone_premium;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000ad';
+select public.admin_actualizar_local(:'neg_a', 'activo', null, null, null, 'premium');
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select public.abrir_caja(10000) is not null as caja_abierta;
+select pg_temp.falla($q$ select public.abrir_caja(5000) $q$) as no_dos_cajas;
+-- una mesa cobrada en efectivo entra sola a la caja
+reset role; set role anon; reset request.jwt.claim.sub;
+select public.crear_pedido(:'mesa1', jsonb_build_array(jsonb_build_object('producto_id', :'vasito', 'cantidad', 2, 'opciones', jsonb_build_array(:'ddl')))) is not null;
+reset role; set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select public.cerrar_mesa((select id from mesas where codigo = :'mesa1'), 'efectivo') = 12000 as mesa_cobrada;
+select public.registrar_movimiento('egreso', 'Hielo', 1500) is not null;
+select public.registrar_movimiento('ingreso', 'Torta por encargo', 8000, 'transferencia', 'otros ingresos') is not null;
+select (r->>'efectivo_esperado')::numeric = 10000 + 12000 - 1500 as esperado_ok,
+       (r->>'ventas_total')::numeric = 12000 as ventas_ok, jsonb_array_length(r->'movimientos') = 2 as movs_ok
+  from public.resumen_caja() r;
+select (r->>'efectivo_contado')::numeric - (r->>'efectivo_esperado')::numeric = -500 as cierre_falta_500
+  from public.cerrar_caja(20000, 'faltaron 500') r;
+select jsonb_array_length(public.historial_cajas()) = 1 as historial_ok;
+select pg_temp.falla(format($q$ select public.borrar_movimiento(%L) $q$, (select id from movimientos where concepto = 'Hielo'))) as no_borra_caja_cerrada;
+select (l->>'ingresos')::numeric = 15800 + 12000 + 8000 and (l->>'egresos')::numeric = 1500 as libro_ok
+  from public.libro_diario(current_date - 1, current_date + 1) l;
+-- otro local no ve la caja; el mozo tampoco
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select count(*) = 0 as otro_no_ve_cajas from cajas;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+select pg_temp.falla($q$ select public.resumen_caja() $q$) as mozo_no_ve_caja;
 reset role;
 select 'TODO OK' as resultado;

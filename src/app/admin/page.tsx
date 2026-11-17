@@ -8,7 +8,7 @@ import { Fondo } from "@/components/Fondo";
 
 type Estado = "prueba" | "activo" | "suspendido";
 interface Local {
-  id: string; nombre: string; estado: Estado; alta: string; logo_url: string | null;
+  id: string; nombre: string; estado: Estado; plan: "basico" | "premium"; alta: string; logo_url: string | null;
   duenio: string | null; email: string | null; equipo: number; mesas: number; productos: number;
   pedidos_7d: number; pedidos_30d: number; ventas_30d: number; ultimo_pedido: string | null;
   contacto: string | null; pagado_hasta: string | null; notas: string | null;
@@ -104,7 +104,12 @@ export default function Admin() {
                   <p className="truncate text-lg font-extrabold">{l.nombre}</p>
                   <p className="truncate text-sm text-suave">{l.duenio ?? "Sin dueño"}{l.email && ` · ${l.email}`}</p>
                 </div>
-                <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-extrabold ${ESTADOS[l.estado].clase}`}>{ESTADOS[l.estado].texto}</span>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <span className={`rounded-full px-3 py-1 text-xs font-extrabold ${ESTADOS[l.estado].clase}`}>{ESTADOS[l.estado].texto}</span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-extrabold ${l.plan === "premium" ? "bg-choco text-white" : "bg-papel text-suave"}`}>
+                    {l.plan === "premium" ? "Premium" : "Básico"}
+                  </span>
+                </div>
               </div>
               <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <Dato valor={String(l.pedidos_7d)} titulo="pedidos, 7 días" alerta={!usa(l)} />
@@ -141,6 +146,7 @@ function Dato({ valor, titulo, alerta }: { valor: string; titulo: string; alerta
 
 function Editar({ local, onCerrar, onGuardado }: { local: Local; onCerrar: () => void; onGuardado: () => void }) {
   const [estado, setEstado] = useState<Estado>(local.estado);
+  const [plan, setPlan] = useState(local.plan);
   const [contacto, setContacto] = useState(local.contacto ?? "");
   const [pagado, setPagado] = useState(local.pagado_hasta ?? "");
   const [notas, setNotas] = useState(local.notas ?? "");
@@ -153,7 +159,7 @@ function Editar({ local, onCerrar, onGuardado }: { local: Local; onCerrar: () =>
       && !confirm(`¿Suspender ${local.nombre}? Sus clientes no van a poder pedir desde el QR hasta que lo reactives.`)) return;
     setGuardando(true); setError("");
     const { error } = await supabase().rpc("admin_actualizar_local", {
-      p_negocio: local.id, p_estado: estado, p_contacto: contacto, p_pagado_hasta: pagado || null, p_notas: notas,
+      p_negocio: local.id, p_estado: estado, p_contacto: contacto, p_pagado_hasta: pagado || null, p_notas: notas, p_plan: plan,
     });
     setGuardando(false);
     if (error) return setError(mensajeError(error));
@@ -177,6 +183,19 @@ function Editar({ local, onCerrar, onGuardado }: { local: Local; onCerrar: () =>
             ))}
           </div>
           {estado === "suspendido" && <p className="mt-2 text-sm text-frutilla-osc">Con el local suspendido, la carta del QR muestra “no disponible” y no entran pedidos.</p>}
+        </fieldset>
+
+        <fieldset className="mt-4">
+          <legend className="etiqueta">Plan</legend>
+          <div className="grid grid-cols-2 gap-2">
+            {(["basico", "premium"] as const).map((p) => (
+              <button key={p} type="button" onClick={() => setPlan(p)} aria-pressed={plan === p}
+                className={`rounded-2xl border-2 px-2 py-3 text-sm font-extrabold ${plan === p ? "border-transparent bg-choco text-white" : "border-borde bg-papel"}`}>
+                {p === "premium" ? "Premium" : "Básico"}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-sm text-suave">Premium suma la sección Administración (caja, libro diario y más) para el dueño.</p>
         </fieldset>
 
         <label className="etiqueta mt-4" htmlFor="a-pagado">Pagado hasta</label>

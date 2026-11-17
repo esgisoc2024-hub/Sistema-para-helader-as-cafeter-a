@@ -15,6 +15,7 @@ const MENU: { href: string; texto: string; roles: Rol[] }[] = [
   { href: "/panel/carta", texto: "Carta", roles: ["duenio"] },
   { href: "/panel/local", texto: "Local y QR", roles: ["duenio"] },
   { href: "/panel/reportes", texto: "Reportes", roles: ["duenio"] },
+  { href: "/panel/administracion", texto: "Administración", roles: ["duenio"] },
 ];
 
 export default function PanelLayout({ children }: { children: React.ReactNode }) {
@@ -55,7 +56,7 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
               {menu.map((m) => (
                 <Link key={m.href} href={m.href}
                   className={`rounded-full border px-3 py-1.5 ${ruta.startsWith(m.href) ? "border-choco bg-choco text-white" : "border-borde bg-papel text-tinta hover:bg-borde/50"}`}>
-                  {m.texto}
+                  {m.texto}{m.href === "/panel/administracion" && negocio.plan !== "premium" && " 🔒"}
                 </Link>
               ))}
               {esAdmin && <Link href="/admin" className="rounded-full border border-choco px-3 py-1.5 text-choco">Mis locales</Link>}

@@ -15,6 +15,8 @@ Resuelve los dolores relevados en reseñas: demora en mesa, faltantes que siguen
 | Apariencia (nombre, portada con foto o video, logo, color), mesas, QR para imprimir y equipo | `/panel/local` | Dueño |
 | Reportes: cobrado, pedidos, espera promedio y máxima, ranking de productos y de cada lista de opciones | `/panel/reportes` | Dueño |
 
+**Plan Premium → Administración** (`/panel/administracion`, solo el dueño de un local Premium): caja con apertura, movimientos y cierre con diferencia; libro diario con ventas y movimientos por día. Diseño completo y próximas etapas en `docs/superpowers/specs/2026-11-17-modulo-administrativo-design.md`.
+
 **Panel de la plataforma** (`/admin`, solo cuentas en la tabla `administradores`): lista de todos los locales con su actividad, estado (prueba, activo, suspendido), pago y notas privadas. Un local suspendido deja de recibir pedidos por QR.
 
 Fuera de la v1: facturación electrónica ARCA, cobro online en el QR, stock de insumos por receta, delivery y reservas.
