@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { hora, minutosDesde, textoOpciones } from "@/lib/formato";
 import { usePanel } from "@/components/PanelContexto";
@@ -18,8 +18,6 @@ export default function Barra() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [ahora, setAhora] = useState(Date.now());
   const [verStock, setVerStock] = useState(false);
-  const [sonido, setSonido] = useState(false);
-  const conocidos = useRef<Set<string> | null>(null);
 
   const cargar = useCallback(async () => {
     const desde = new Date(Date.now() - 12 * 3600 * 1000).toISOString();
@@ -27,12 +25,8 @@ export default function Barra() {
       .from("pedidos").select("*, items_pedido(*)")
       .in("estado", ["nuevo", "preparando", "listo"]).gte("creado_at", desde)
       .order("creado_at");
-    const lista = (data ?? []) as Pedido[];
-    // Aviso sonoro cuando entra un pedido nuevo.
-    if (conocidos.current && sonido && lista.some((p) => !conocidos.current!.has(p.id))) beep();
-    conocidos.current = new Set(lista.map((p) => p.id));
-    setPedidos(lista);
-  }, [sonido]);
+    setPedidos((data ?? []) as Pedido[]);
+  }, []);
 
   useEffect(() => {
     cargar();
@@ -56,13 +50,10 @@ export default function Barra() {
         <h1 className="font-titulo text-2xl">Comandas</h1>
         <span className="text-sm text-suave">{pedidos.length} en curso</span>
         <div className="ml-auto flex gap-2">
-          <button className="btn-secundario py-2 text-sm" aria-pressed={sonido}
-            onClick={() => {
-              if (!sonido) { activarAudio(); beep(); } // suena una vez para confirmar que se escucha
-              setSonido(!sonido);
-            }}>
-            {sonido ? "🔔 Sonido activado" : "🔕 Activar sonido"}
-          </button>
+          {/* La campanita está siempre activa: la maneja AvisosSalon en todo el panel. */}
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-menta/15 px-3 py-2 text-sm font-bold text-menta">
+            <span aria-hidden className="h-2 w-2 animate-pulse rounded-full bg-menta" />Campanita activa
+          </span>
           <button className="btn-secundario py-2 text-sm" onClick={() => setVerStock(!verStock)}>
             {verStock ? "Volver a comandas" : "Sin stock"}
           </button>
@@ -113,35 +104,4 @@ export default function Barra() {
       )}
     </div>
   );
-}
-
-// Un solo "parlante" para toda la pantalla. Se crea al tocar "Activar sonido": los navegadores
-// (sobre todo iPad y iPhone) solo dejan sonar si el audio se habilitó con un toque del usuario.
-let audio: AudioContext | null = null;
-
-function activarAudio() {
-  try {
-    audio ??= new AudioContext();
-    if (audio.state === "suspended") audio.resume();
-  } catch {}
-}
-
-// Dos tonos cortos tipo "ding-dong".
-function beep() {
-  if (!audio) return;
-  try {
-    if (audio.state === "suspended") audio.resume();
-    const ahora = audio.currentTime;
-    [880, 1320].forEach((frecuencia, i) => {
-      const o = audio!.createOscillator();
-      const g = audio!.createGain();
-      o.frequency.value = frecuencia;
-      o.connect(g); g.connect(audio!.destination);
-      const t = ahora + i * 0.22;
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.35, t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
-      o.start(t); o.stop(t + 0.42);
-    });
-  } catch {}
 }
