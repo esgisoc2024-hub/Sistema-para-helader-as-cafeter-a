@@ -18,7 +18,10 @@ const PASOS = ["nuevo", "preparando", "listo", "entregado"] as const;
 export default function CartaQR({ params }: { params: Promise<{ codigo: string }> }) {
   const { codigo } = use(params);
   // ?mozo=1: el mozo carga el pedido a mano desde el panel de mesas.
-  const esMozo = useSearchParams().get("mozo") === "1";
+  const parametros = useSearchParams();
+  const esMozo = parametros.get("mozo") === "1";
+  // ?demo=1: carta de prueba de la página de inicio. Se puede pedir, pero nada llega a la base.
+  const esDemo = parametros.get("demo") === "1";
   const [carta, setCarta] = useState<CartaPublica | null | undefined>(undefined);
   const [estado, setEstado] = useState<EstadoMesaPublico | null>(null);
   const [vista, setVista] = useState<"carta" | "pedido">("carta");
@@ -34,9 +37,10 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
   }, [codigo]);
 
   const cargarEstado = useCallback(async () => {
+    if (esDemo) return; // en la demo el estado vive solo en esta pantalla
     const { data } = await supabase().rpc("estado_mesa", { p_codigo: codigo });
     if (data) setEstado(data as EstadoMesaPublico);
-  }, [codigo]);
+  }, [codigo, esDemo]);
 
   useEffect(() => {
     cargarCarta();
@@ -84,7 +88,31 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
     }));
   }
 
+  // Demo: arma el pedido en pantalla y lo hace avanzar solo (recibido → preparando → listo).
+  function enviarDemo() {
+    const id = crypto.randomUUID();
+    const total = carrito.reduce((s, l) => s + precioLinea(l) * l.cantidad, 0);
+    const pedido = {
+      id, estado: "nuevo" as const, creado_at: new Date().toISOString(), total,
+      items: carrito.map((l) => ({ nombre: l.producto.nombre, cantidad: l.cantidad, opciones: l.opciones })),
+    };
+    setEstado((e) => {
+      const previos = e?.pedidos ?? [];
+      return { mesa: carta?.mesa ?? 1, estado_mesa: "ocupada", llamado: false, pedidos: [...previos, pedido],
+        total: [...previos, pedido].reduce((s, x) => s + Number(x.total), 0) };
+    });
+    const avanzar = (estado: "preparando" | "listo", ms: number) => setTimeout(() =>
+      setEstado((e) => e && { ...e, pedidos: e.pedidos.map((x) => (x.id === id ? { ...x, estado } : x)) }), ms);
+    avanzar("preparando", 3000);
+    avanzar("listo", 8000);
+    setCarrito([]);
+    setVerCarrito(false);
+    setVista("pedido");
+    setAviso({ tipo: "ok", texto: "¡Pedido enviado a la barra!" });
+  }
+
   async function enviar() {
+    if (esDemo) return enviarDemo();
     setEnviando(true);
     const items = carrito.map((l) => ({ producto_id: l.producto.id, cantidad: l.cantidad, opciones: l.opciones.map((o) => o.id), nota: l.nota }));
     const { error } = await supabase().rpc("crear_pedido", { p_codigo: codigo, p_items: items, p_origen: esMozo ? "mozo" : "qr" });
@@ -102,6 +130,10 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
   }
 
   async function llamar(motivo: "mozo" | "cuenta") {
+    if (esDemo) {
+      setAviso({ tipo: "ok", texto: motivo === "cuenta" ? "En el local, al mozo le llega: “Mesa 1 pide la cuenta”" : "En el local, al mozo le llega: “Te llaman de la mesa 1”" });
+      return;
+    }
     const { error } = await supabase().rpc("llamar_desde_mesa", { p_codigo: codigo, p_motivo: motivo });
     setAviso(error
       ? { tipo: "error", texto: mensajeError(error) }
@@ -121,6 +153,12 @@ export default function CartaQR({ params }: { params: Promise<{ codigo: string }
         <div className="flex items-center justify-between bg-choco px-4 py-2 text-sm font-semibold text-white">
           <span>Cargando pedido como mozo</span>
           <Link href="/panel/mesas" className="underline">Volver a mesas</Link>
+        </div>
+      )}
+      {esDemo && (
+        <div className="flex items-center justify-between gap-3 bg-choco px-4 py-2 text-sm font-semibold text-white">
+          <span>Carta de prueba: pedí lo que quieras, no se cobra nada.</span>
+          <Link href="/" className="shrink-0 underline">Volver</Link>
         </div>
       )}
       <Fondo url={carta.portada_url} tipo={carta.portada_tipo} />

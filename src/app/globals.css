@@ -54,6 +54,27 @@ body {
 .fondo-velo { position: absolute; inset: 0; background: color-mix(in srgb, var(--color-crema) 42%, transparent); }
 .fondo-velo-suave { background: color-mix(in srgb, var(--color-crema) 45%, transparent); }
 
+/* ── Escena de la página de inicio: el pedido viaja del celular a la barra (ciclo de 6.5 s) ── */
+.escena-elegido { animation: esc-elegir 6.5s ease-in-out infinite; }
+.escena-boton { animation: esc-boton 6.5s ease-in-out infinite; }
+.escena-ticket { animation: esc-ticket 6.5s cubic-bezier(0.5, 0, 0.3, 1) infinite; }
+.escena-llegada { animation: esc-llegada 6.5s cubic-bezier(0.3, 1.5, 0.5, 1) infinite; }
+.escena-ding { animation: esc-ding 6.5s ease-out infinite; }
+@keyframes esc-elegir { 0%, 8% { box-shadow: none; } 14%, 26% { box-shadow: 0 0 0 2px var(--color-frutilla); background: var(--color-rubor); } 34%, 100% { box-shadow: none; } }
+@keyframes esc-boton { 0%, 26% { transform: scale(1); } 30% { transform: scale(0.9); } 34%, 100% { transform: scale(1); } }
+@keyframes esc-ticket {
+  0%, 32% { opacity: 0; transform: translate(-40px, -30px) rotate(-8deg) scale(0.7); }
+  38% { opacity: 1; transform: translate(-30px, -20px) rotate(-6deg) scale(1); }
+  58% { opacity: 1; transform: translate(150px, 120px) rotate(5deg) scale(0.85); }
+  64%, 100% { opacity: 0; transform: translate(170px, 140px) rotate(5deg) scale(0.6); }
+}
+@keyframes esc-llegada { 0%, 58% { opacity: 0; transform: scale(0.6); } 66% { opacity: 1; transform: scale(1.08); } 72%, 92% { opacity: 1; transform: scale(1); } 100% { opacity: 0; } }
+@keyframes esc-ding { 0%, 58% { opacity: 0; transform: rotate(0); } 62% { opacity: 1; transform: rotate(-12deg); } 66% { transform: rotate(10deg); } 70% { transform: rotate(-6deg); } 74%, 90% { opacity: 1; transform: rotate(0); } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .escena-ticket { opacity: 0; }
+  .escena-llegada, .escena-ding { opacity: 1; transform: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
