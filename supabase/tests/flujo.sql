@@ -168,5 +168,35 @@ select count(*) = 0 as otro_no_ve_proveedores from proveedores;
 select pg_temp.falla(format($q$ select public.pagar_gasto(%L, 1) $q$, :'compra')) as otro_no_paga;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
 select count(*) = 0 as mozo_no_ve_gastos from gastos;
+-- ── Etapa 3: fiado y cuentas por cobrar ──
+-- el local B (básico) no puede fiar
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.falla($q$ select public.clientes_para_fiado() $q$) as basico_no_fia;
+-- el mozo de A fía una mesa a un cliente nuevo
+reset role; set role anon; reset request.jwt.claim.sub;
+select public.crear_pedido(:'mesa1', jsonb_build_array(jsonb_build_object('producto_id', :'vasito', 'cantidad', 1, 'opciones', jsonb_build_array(:'ddl')))) is not null;
+reset role; set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+select pg_temp.falla(format($q$ select public.cerrar_mesa(%L, 'fiado') $q$, (select id from mesas where codigo = :'mesa1'))) as fiado_pide_cliente;
+select jsonb_typeof(public.clientes_para_fiado()) = 'array' as mozo_ve_clientes;
+select public.cerrar_mesa((select id from mesas where codigo = :'mesa1'), 'fiado', null, 'Doña Rosa') = 6000 as mesa_fiada;
+select count(*) = 0 as mozo_no_ve_deudas from deudas;
+-- la dueña ve la deuda; el libro diario no la cuenta como ingreso
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+select (c->>'saldo')::numeric = 6000 and jsonb_array_length(c->'deudas') = 1 and (c->'deudas'->0->>'de_mesa')::boolean as deuda_creada
+  from jsonb_array_elements(public.cuentas_por_cobrar()) c where c->>'nombre' = 'Doña Rosa';
+select id as rosa from deudores where nombre = 'Doña Rosa' \gset
+insert into deudas (negocio_id, deudor_id, concepto, monto, fecha) values (:'neg_a', :'rosa', 'Torta de cumpleaños', 9000, current_date - 10);
+select (l->>'ingresos')::numeric = 15800 + 12000 + 8000 as libro_sin_fiado from public.libro_diario(current_date - 1, current_date + 1) l;
+select (r->>'fiado')::numeric = 6000 as reporte_separa_fiado from public.reporte(now() - interval '1 day', now() + interval '1 day') r;
+select pg_temp.falla(format($q$ select public.cobrar_deuda(%L, 20000) $q$, :'rosa')) as no_cobra_de_mas;
+-- cobra 10.000: salda primero la torta (más vieja) y 1.000 de la mesa
+select public.cobrar_deuda(:'rosa', 10000, 'efectivo') = 10000 as cobro_ok;
+select (c->>'saldo')::numeric = 5000 as saldo_ok from jsonb_array_elements(public.cuentas_por_cobrar()) c where c->>'nombre' = 'Doña Rosa';
+select public.saldo_deuda(id) = 0 as torta_saldada from deudas where concepto = 'Torta de cumpleaños';
+select (l->>'ingresos')::numeric = 15800 + 12000 + 8000 + 10000 as libro_con_cobro from public.libro_diario(current_date - 1, current_date + 1) l;
+select (r->>'efectivo_esperado')::numeric = 1000 - 20000 + 10000 as caja_suma_cobro from public.resumen_caja() r;
+select pg_temp.falla(format($q$ delete from deudas where id = %L $q$, (select id from deudas where concepto = 'Torta de cumpleaños'))) as no_borra_deuda_cobrada;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select count(*) = 0 as otro_no_ve_deudores from deudores;
 reset role;
 select 'TODO OK' as resultado;

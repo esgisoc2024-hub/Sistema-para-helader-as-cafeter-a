@@ -16,7 +16,7 @@ interface CajaCerrada {
   efectivo_esperado: number; efectivo_contado: number; diferencia: number; ventas: number;
 }
 
-const MEDIOS: Record<string, string> = { efectivo: "Efectivo", qr: "QR / MP", tarjeta: "Tarjeta", transferencia: "Transferencia" };
+const MEDIOS: Record<string, string> = { efectivo: "Efectivo", qr: "QR / MP", tarjeta: "Tarjeta", transferencia: "Transferencia", fiado: "Fiado" };
 const CATEGORIAS_EGRESO = ["Compras chicas", "Retiro del dueño", "Proveedor", "Limpieza", "Otros"];
 const CATEGORIAS_INGRESO = ["Otros ingresos", "Aporte de cambio", "Encargo"];
 

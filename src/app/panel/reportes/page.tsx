@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { precio } from "@/lib/formato";
 
 interface Reporte {
-  ventas: number; por_medio: Record<string, number>; pedidos: number;
+  ventas: number; fiado?: number; por_medio: Record<string, number>; pedidos: number;
   espera_promedio_min: number | null; espera_max_min: number | null;
   productos: { nombre: string; unidades: number; importe: number }[];
   opciones: { grupo: string; nombre: string; veces: number }[];
@@ -50,7 +50,11 @@ export default function Reportes() {
       {!rep ? <p className="text-suave">Cargando…</p> : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Dato titulo="Cobrado" valor={precio(rep.ventas)} detalle={Object.entries(rep.por_medio).map(([m, v]) => `${m === "qr" ? "QR" : m}: ${precio(v)}`).join(" · ") || "—"} />
+            <Dato titulo="Cobrado" valor={precio(rep.ventas)}
+              detalle={[
+                ...Object.entries(rep.por_medio).filter(([m]) => m !== "fiado").map(([m, v]) => `${m === "qr" ? "QR" : m}: ${precio(v)}`),
+                ...(Number(rep.fiado ?? 0) > 0 ? [`fiado (sin cobrar): ${precio(rep.fiado ?? 0)}`] : []),
+              ].join(" · ") || "—"} />
             <Dato titulo="Pedidos" valor={String(rep.pedidos)} />
             <Dato titulo="Espera promedio" valor={rep.espera_promedio_min != null ? `${rep.espera_promedio_min} min` : "—"} detalle="del pedido a “listo”" />
             <Dato titulo="Espera más larga" valor={rep.espera_max_min != null ? `${rep.espera_max_min} min` : "—"} />

@@ -8,6 +8,15 @@ export type CategoriaGasto = keyof typeof CATEGORIAS_GASTO;
 export const nombreCategoria = (c: string) => (CATEGORIAS_GASTO[c as CategoriaGasto] ?? c).replace(/ \(.*\)$/, "");
 
 export const MEDIOS_PAGO: Record<string, string> = { efectivo: "Efectivo", qr: "QR / MP", tarjeta: "Tarjeta", transferencia: "Transferencia" };
+/** Medios que pueden aparecer en las ventas (incluye las mesas fiadas). */
+export const MEDIOS_VENTA: Record<string, string> = { ...MEDIOS_PAGO, fiado: "Fiado" };
+
+export interface CobroDeuda { id: string; fecha: string; monto: number; medio: string; borrable: boolean }
+export interface Deuda { id: string; concepto: string; monto: number; fecha: string; vence: string | null; saldo: number; de_mesa: boolean; cobros: CobroDeuda[] }
+export interface Deudor {
+  id: string; nombre: string; contacto: string | null; notas: string | null; saldo: number; vencido: boolean;
+  ultima_deuda: string | null; ultimo_cobro: string | null; deudas: Deuda[];
+}
 
 export interface PagoGasto { id: string; fecha: string; monto: number; medio: string; borrable: boolean }
 export interface CuentaPagar {
