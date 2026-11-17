@@ -7,6 +7,8 @@ import { usePanel } from "@/components/PanelContexto";
 const SECCIONES = [
   { href: "/panel/administracion/caja", texto: "Caja" },
   { href: "/panel/administracion/libro", texto: "Libro diario" },
+  { href: "/panel/administracion/pagar", texto: "Cuentas por pagar" },
+  { href: "/panel/administracion/proveedores", texto: "Proveedores" },
 ];
 
 const INCLUYE = [

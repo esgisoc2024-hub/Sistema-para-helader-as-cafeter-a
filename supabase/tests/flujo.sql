@@ -139,5 +139,34 @@ set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select count(*) = 0 as otro_no_ve_cajas from cajas;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
 select pg_temp.falla($q$ select public.resumen_caja() $q$) as mozo_no_ve_caja;
+-- ── Etapa 2: proveedores, gastos y gastos fijos ──
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+insert into proveedores (negocio_id, nombre, plazo_dias) values (:'neg_a', 'Lácteos del Oeste', 15);
+select id as prov from proveedores where nombre = 'Lácteos del Oeste' \gset
+insert into proveedor_items (negocio_id, proveedor_id, nombre, unidad, costo) values (:'neg_a', :'prov', 'Leche entera', 'litro', 1200);
+insert into gastos (negocio_id, categoria, concepto, monto, fecha, proveedor_id) values (:'neg_a', 'proveedores', 'Pedido semanal', 50000, current_date - 20, :'prov');
+select vence = current_date - 5 as vence_por_plazo from gastos where concepto = 'Pedido semanal';
+select id as compra from gastos where concepto = 'Pedido semanal' \gset
+select pg_temp.falla(format($q$ select public.pagar_gasto(%L, 60000) $q$, :'compra')) as no_paga_de_mas;
+select public.abrir_caja(1000) is not null as caja2;
+select public.pagar_gasto(:'compra', 20000, 'efectivo') is not null as pago_parcial;
+select (x->>'estado') = 'vencido' and (x->>'saldo')::numeric = 30000 as cuenta_vencida
+  from jsonb_array_elements(public.cuentas_por_pagar()) x where x->>'concepto' = 'Pedido semanal';
+select (x->>'deuda')::numeric = 30000 and x->>'ultimo_pago' is not null and jsonb_array_length(x->'items') = 1 as proveedor_ok
+  from jsonb_array_elements(public.resumen_proveedores()) x;
+select (r->>'efectivo_esperado')::numeric = 1000 - 20000 as caja_descuenta_pago from public.resumen_caja() r;
+select pg_temp.falla(format($q$ delete from gastos where id = %L $q$, :'compra')) as no_borra_gasto_con_pagos;
+-- gasto fijo: se genera una sola vez por mes
+insert into gastos_fijos (negocio_id, categoria, concepto, monto, dia_vencimiento) values (:'neg_a', 'alquiler', 'Alquiler del local', 400000, 10);
+select public.generar_gastos_fijos() = 1 as fijo_generado;
+select public.generar_gastos_fijos() = 0 as fijo_no_duplica;
+select (l->>'egresos')::numeric = 1500 + 20000 as libro_incluye_pago
+  from public.libro_diario(current_date - 1, current_date + 1) l;
+-- aislamiento
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select count(*) = 0 as otro_no_ve_proveedores from proveedores;
+select pg_temp.falla(format($q$ select public.pagar_gasto(%L, 1) $q$, :'compra')) as otro_no_paga;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+select count(*) = 0 as mozo_no_ve_gastos from gastos;
 reset role;
 select 'TODO OK' as resultado;

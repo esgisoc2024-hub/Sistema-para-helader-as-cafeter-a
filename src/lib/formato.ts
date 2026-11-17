@@ -19,6 +19,8 @@ export function mensajeError(e: unknown): string {
   if (m.includes("caja_ya_abierta")) return "Ya hay una caja abierta. Cerrala antes de abrir otra.";
   if (m.includes("sin_caja_abierta")) return "No hay ninguna caja abierta.";
   if (m.includes("no_se_puede_borrar")) return "Ese movimiento es de una caja ya cerrada y no se puede borrar.";
+  if (m.includes("pago_mayor_al_saldo")) return "El pago es mayor a lo que falta pagar.";
+  if (m.includes("violates foreign key constraint") && m.includes("gasto")) return "Ese gasto tiene pagos: anulá los pagos antes de borrarlo.";
   if (m.includes("mesa_invalida")) return "Este QR no corresponde a una mesa activa.";
   if (m.includes("codigo_invalido")) return "El código del equipo no existe. Pedíselo al dueño.";
   if (m.includes("ya_tiene_negocio")) return "Tu usuario ya pertenece a un negocio.";
