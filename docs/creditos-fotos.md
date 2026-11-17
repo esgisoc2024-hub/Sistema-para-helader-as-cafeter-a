@@ -1,6 +1,6 @@
 # Créditos de las fotos de la página de inicio
 
-Fotos propias del cliente: `charla.webp`, `mesa-terraza.webp`, `mesa-celular.webp`.
+Fotos propias del cliente: `charla.webp`, `mesa-terraza.webp`.
 
 Fotos de [Unsplash](https://unsplash.com/license) (licencia Unsplash: uso comercial gratuito, sin permiso previo; no se pueden revender sueltas):
 

@@ -8,7 +8,6 @@ import { Recorrido, type Momento } from "@/components/Recorrido";
 // Fotos propias del cliente
 import charla from "../../public/inicio/charla.webp";
 import terraza from "../../public/inicio/mesa-terraza.webp";
-import celular from "../../public/inicio/mesa-celular.webp";
 // Fotos de Unsplash (licencia Unsplash: uso comercial libre). Créditos en el pie y en docs/creditos-fotos.md
 import gelateria from "../../public/inicio/gelateria.webp";
 import latte from "../../public/inicio/latte-barista.webp";
@@ -23,8 +22,6 @@ import salonCafe from "../../public/inicio/salon-cafe.webp";
 
 // Mesa 1 de "Heladería Demo": carta de prueba en modo demo (no crea pedidos reales).
 const DEMO = "/m/e6b698b6ab?demo=1";
-
-const SABORES = ["Pistacho", "Flat white", "Dulce de leche", "Cortado", "Limón a la albahaca", "Submarino", "Chocolate amargo", "Affogato", "Sambayón", "Medialunas", "Frutilla a la crema", "Cappuccino"];
 
 const MOMENTOS: Momento[] = [
   { sobre: "Se sienta", titulo: "Abre tu carta con el QR.", texto: "Sin descargar nada. Tu carta con fotos, tus colores y tu logo, en el celular de cada cliente.",
@@ -161,13 +158,6 @@ export default function Inicio() {
           <div aria-hidden className="lp-bajar hidden md:block">deslizá</div>
         </section>
 
-        {/* ── Cinta de sabores ── */}
-        <div aria-hidden className="lp-cinta">
-          <div className="lp-cinta-pista">
-            {[...SABORES, ...SABORES].map((s, i) => <span key={i}>{s}<i>✦</i></span>)}
-          </div>
-        </div>
-
         {/* ── Frase ── */}
         <section className="mx-auto max-w-4xl px-4 py-24 text-center">
           <p data-revelar className="lp-titulo text-3xl leading-snug sm:text-[2.6rem]">
@@ -221,23 +211,12 @@ export default function Inicio() {
           </div>
         </section>
 
-        {/* ── En la mesa: foto del celular ── */}
-        <section className="mx-auto grid max-w-6xl items-center gap-14 px-4 py-24 md:grid-cols-2">
-          <div data-revelar className="relative mx-auto w-full max-w-[380px]">
-            <div className="lp-marco">
-              <div data-paralaje="0.08" className="absolute -inset-y-[10%] inset-x-0">
-                <Image src={celular} alt="Un celular sobre una mesa de madera mostrando la carta" sizes="(min-width: 768px) 380px, 90vw" className="lp-paneo h-full w-full object-cover" />
-              </div>
-              <div aria-hidden className="lp-luz" />
-            </div>
-            <div aria-hidden className="lp-sello">
-              <Image src={conoLimon} alt="" sizes="140px" className="h-full w-full object-cover" />
-            </div>
-          </div>
+        {/* ── Probalo ahora ── */}
+        <section className="mx-auto max-w-3xl px-4 py-24 text-center">
           <div data-revelar>
             <p className="lp-sobre">Probalo ahora</p>
             <h2 className="lp-titulo mt-3 text-4xl leading-tight sm:text-5xl">Sentate en la mesa 1 <em>de nuestra heladería de prueba.</em></h2>
-            <p className="mt-5 text-lg leading-relaxed text-[var(--lp-suave)]">
+            <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-[var(--lp-suave)]">
               Abrí la carta como lo haría tu cliente: elegí sabores, mirá cómo se arma el pedido y sentí lo simple que es.
               Es una demo: no se envía nada de verdad.
             </p>
