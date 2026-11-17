@@ -30,6 +30,25 @@ export interface Proveedor {
   items: ItemProveedor[]; deuda: number; ultima_compra: string | null; ultimo_pago: string | null; proximo_vencimiento: string | null;
 }
 
+export const TIPOS_COMISION = {
+  ninguna: "Sin comisión",
+  cobrado: "% de lo que cobró él",
+  ventas_total: "% de las ventas del local",
+  fijo: "Monto fijo por mes",
+} as const;
+export type TipoComision = keyof typeof TIPOS_COMISION;
+
+export interface Liquidacion {
+  id: string; total: number; comision: number; base_comision: number; sueldo_base: number;
+  adicionales: number; descuentos: number; nota: string | null; gasto_id: string | null; vence: string | null; pagado: number;
+}
+export interface Empleado {
+  id: string; nombre: string; puesto: string | null; contacto: string | null; usuario_id: string | null; cuenta: string | null;
+  sueldo_base: number; comision_tipo: TipoComision; comision_valor: number; fecha_ingreso: string | null; activo: boolean;
+  calculo: { sueldo_base: number; base_comision: number; comision: number; total: number; sin_cuenta: boolean };
+  liquidacion: Liquidacion | null;
+}
+
 /** Fecha local de hoy (AAAA-MM-DD). */
 export const hoyISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 export const fechaCorta = (d: string) => new Date(d.length === 10 ? d + "T12:00:00" : d).toLocaleDateString("es-AR", { day: "numeric", month: "short" });

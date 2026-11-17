@@ -10,6 +10,7 @@ const SECCIONES = [
   { href: "/panel/administracion/cobrar", texto: "Cuentas por cobrar" },
   { href: "/panel/administracion/pagar", texto: "Cuentas por pagar" },
   { href: "/panel/administracion/proveedores", texto: "Proveedores" },
+  { href: "/panel/administracion/empleados", texto: "Empleados" },
 ];
 
 const INCLUYE = [

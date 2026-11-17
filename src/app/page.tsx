@@ -41,7 +41,7 @@ const PLANES = [
   },
   {
     nombre: "Premium", para: "Para saber si ganás plata", destacado: true,
-    incluye: ["Todo lo del plan Básico", "Caja: apertura y cierre", "Libro diario", "Cuentas por pagar y gastos fijos", "Proveedores, costos y deudas", "Cuentas por cobrar y mesas fiadas", "Próximamente: sueldos y resultado del mes"],
+    incluye: ["Todo lo del plan Básico", "Caja: apertura y cierre", "Libro diario", "Cuentas por pagar y gastos fijos", "Proveedores, costos y deudas", "Cuentas por cobrar y mesas fiadas", "Empleados y sueldos con comisiones", "Próximamente: márgenes y resultado del mes"],
   },
 ];
 

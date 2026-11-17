@@ -198,5 +198,38 @@ select (r->>'efectivo_esperado')::numeric = 1000 - 20000 + 10000 as caja_suma_co
 select pg_temp.falla(format($q$ delete from deudas where id = %L $q$, (select id from deudas where concepto = 'Torta de cumpleaños'))) as no_borra_deuda_cobrada;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select count(*) = 0 as otro_no_ve_deudores from deudores;
+-- ── Etapa 4: empleados y sueldos ──
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+-- Juan (mozo con cuenta) cobró la mesa fiada de 6.000 este mes: 5% de lo cobrado = 300
+insert into empleados (negocio_id, nombre, puesto, usuario_id, sueldo_base, comision_tipo, comision_valor)
+values (:'neg_a', 'Juan', 'Mozo', '00000000-0000-0000-0000-00000000000c', 500000, 'cobrado', 5);
+insert into empleados (negocio_id, nombre, puesto, sueldo_base, comision_tipo, comision_valor)
+values (:'neg_a', 'Ana', 'Barra', 450000, 'fijo', 20000);
+insert into empleados (negocio_id, nombre, sueldo_base, comision_tipo, comision_valor) values (:'neg_a', 'Luis', 400000, 'cobrado', 3);
+select pg_temp.falla($q$ insert into empleados (negocio_id, nombre, comision_tipo, comision_valor) values ((select id from negocios where nombre = 'Heladería A'), 'X', 'cobrado', 150) $q$) as no_mas_de_100;
+select id as juan from empleados where nombre = 'Juan' \gset
+select id as ana from empleados where nombre = 'Ana' \gset
+select (c->>'base_comision')::numeric = 6000 and (c->>'comision')::numeric = 300 and (c->>'total')::numeric = 500300 as comision_cobrado_ok
+  from public.calcular_sueldo(:'juan', current_date) c;
+select (c->>'comision')::numeric = 20000 as comision_fija_ok from public.calcular_sueldo(:'ana', current_date) c;
+select (x->'calculo'->>'sin_cuenta')::boolean as avisa_sin_cuenta from jsonb_array_elements(public.sueldos_del_mes(current_date)) x where x->>'nombre' = 'Luis';
+-- liquidar con extras y adelanto: 500.300 + 10.000 - 50.000 = 460.300
+select public.liquidar_sueldo(:'juan', current_date, 10000, 50000, 'adelanto del 15') is not null as liquidado;
+select pg_temp.falla(format($q$ select public.liquidar_sueldo(%L, current_date) $q$, :'juan')) as no_liquida_dos_veces;
+select (x->>'monto')::numeric = 460300 and x->>'categoria' = 'sueldos' as cuenta_por_pagar_creada
+  from jsonb_array_elements(public.cuentas_por_pagar()) x where x->>'concepto' like 'Sueldo Juan%';
+-- pagar una parte desde cuentas por pagar y no poder anular
+select public.pagar_gasto((select gasto_id from liquidaciones where empleado_id = :'juan'), 100000, 'transferencia') is not null;
+select (x->'liquidacion'->>'pagado')::numeric = 100000 as pagado_visible from jsonb_array_elements(public.sueldos_del_mes(current_date)) x where x->>'nombre' = 'Juan';
+select pg_temp.falla(format($q$ select public.anular_liquidacion(%L) $q$, (select id from liquidaciones where empleado_id = :'juan'))) as no_anula_con_pagos;
+-- la de Ana sí se puede anular
+select public.liquidar_sueldo(:'ana', current_date) is not null;
+select public.anular_liquidacion((select id from liquidaciones where empleado_id = :'ana'));
+select not exists (select 1 from gastos where concepto like 'Sueldo Ana%') as anulada_sin_rastro;
+-- aislamiento
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+select count(*) = 0 as mozo_no_ve_sueldos from empleados;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+select pg_temp.falla(format($q$ select public.calcular_sueldo(%L, current_date) $q$, :'juan')) as otro_no_calcula;
 reset role;
 select 'TODO OK' as resultado;
