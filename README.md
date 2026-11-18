@@ -9,6 +9,7 @@ Resuelve los dolores relevados en reseñas: demora en mesa, faltantes que siguen
 |---|---|---|
 | Carta por QR + carrito + opciones (sabores, leche, tamaño, extras) | `/m/<codigo-de-mesa>` | Cliente (sin cuenta) |
 | Estado del pedido, llamar al mozo, pedir la cuenta | misma pantalla, pestaña “Mi pedido” | Cliente |
+| Mostrador / para llevar: armar la venta, cobrar (con vuelto) y número de ticket del día | `/panel/mostrador` | Barra, mozo, dueño |
 | Comandas de barra (tiempo real, aviso sonoro, alerta a los 10 min) + “sin stock” | `/panel/barra` | Barra, mozo, dueño |
 | Mapa de mesas, detalle, cargar pedido a mano, cobrar y cerrar | `/panel/mesas` | Mozo, dueño |
 | Carta: categorías, productos, precios y listas de opciones por producto | `/panel/carta` | Dueño |
@@ -28,6 +29,7 @@ Fuera de la v1: facturación electrónica ARCA, cobro online en el QR, stock de 
 - El cliente no tiene cuenta: solo usa funciones SQL acotadas (`carta_mesa`, `crear_pedido`, `estado_mesa`, `llamar_desde_mesa`) que validan precio, stock y sabores en el servidor. El precio se copia a cada ítem al pedir.
 - **Opciones por producto**: el dueño arma listas reutilizables (Sabores, Leche, Tamaño, Extras) con precio extra opcional, y en cada producto marca cuáles usa, si son obligatorias y cuántas se eligen. Marcar una opción "sin stock" la saca de todos los productos; si un producto se queda sin opciones obligatorias, se oculta solo.
 - Una **cuenta** es la visita de un grupo a una mesa: se abre con el primer pedido y se cierra al cobrar, así la mesa siguiente arranca de cero.
+- Una **venta de mostrador** (`venta_mostrador`) crea el pedido y lo cobra en un solo paso: la cuenta no tiene mesa y se cierra en el momento, el pago entra a la caja abierta y a los reportes, y el pedido lleva un número de ticket que se reinicia cada día. Si “Lo prepara la barra” está activo, aparece en las comandas como “Mostrador · N° 12”; si no, queda como entregado.
 - El dueño crea el negocio (opcionalmente con carta de ejemplo y 8 mesas) y comparte un **código de equipo**; quien se une entra como mozo y el dueño le cambia el rol.
 
 ## Puesta en marcha
@@ -50,4 +52,11 @@ createdb prueba && psql -d prueba -f supabase/tests/stub_supabase.sql \
   -f supabase/migrations/20261116000000_esquema_inicial.sql -f supabase/tests/flujo.sql
 ```
 
-Termina con `TODO OK`.
+Termina con `TODO OK`. La venta por mostrador tiene su propia prueba, que corre sobre todas las migraciones:
+
+```bash
+createdb mostrador && psql -d mostrador -f supabase/tests/stub_supabase.sql \
+  $(for f in supabase/migrations/*.sql; do echo -f $f; done) -f supabase/tests/mostrador.sql
+```
+
+Termina con `MOSTRADOR OK` (los errores de `storage` son esperables: el stub no simula el almacenamiento de imágenes).

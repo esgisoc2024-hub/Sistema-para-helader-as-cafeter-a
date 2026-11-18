@@ -19,7 +19,9 @@ export interface ProductoGrupo { producto_id: string; grupo_id: string; minimo: 
 export interface OpcionElegida { grupo: string; nombre: string; extra: number }
 export interface ItemPedido { id: string; nombre_producto: string; cantidad: number; precio_unitario: number; opciones: OpcionElegida[]; nota: string | null }
 export interface Pedido {
-  id: string; mesa_id: string; cuenta_id: string; numero_mesa: number; estado: EstadoPedido; origen: "qr" | "mozo";
+  // Un pedido de mostrador no tiene mesa: tiene número de ticket del día.
+  id: string; mesa_id: string | null; cuenta_id: string; numero_mesa: number | null; numero_ticket: number | null;
+  estado: EstadoPedido; origen: "qr" | "mozo" | "mostrador";
   total: number; creado_at: string; preparando_at: string | null; listo_at: string | null; entregado_at: string | null;
   items_pedido?: ItemPedido[];
 }
@@ -41,4 +43,10 @@ export interface CartaPublica {
 export interface EstadoMesaPublico {
   mesa: number; estado_mesa: EstadoMesa; llamado: boolean; total: number;
   pedidos: { id: string; estado: EstadoPedido; creado_at: string; total: number; items: { nombre: string; cantidad: number; opciones: OpcionElegida[] }[] }[];
+}
+
+// Lo que devuelve carta_mostrador() para el personal: la misma carta, sin mesa.
+export interface CartaMostrador {
+  negocio: string; logo_url: string | null; color: string | null;
+  categorias: { id: string; nombre: string; productos: ProductoPublico[] }[];
 }
