@@ -11,6 +11,7 @@ import { AvisosSalon } from "@/components/AvisosSalon";
 import type { Rol } from "@/lib/tipos";
 
 const MENU: { href: string; texto: string; roles: Rol[] }[] = [
+  { href: "/panel/mostrador", texto: "Mostrador", roles: ["duenio", "mozo", "barra"] },
   { href: "/panel/barra", texto: "Barra", roles: ["duenio", "mozo", "barra"] },
   { href: "/panel/mesas", texto: "Mesas", roles: ["duenio", "mozo"] },
   { href: "/panel/carta", texto: "Carta", roles: ["duenio"] },

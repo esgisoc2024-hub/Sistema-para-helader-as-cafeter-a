@@ -30,6 +30,8 @@ export function mensajeError(e: unknown): string {
   if (m.includes("sueldo_con_pagos")) return "Ese sueldo ya tiene pagos: anulá los pagos en Cuentas por pagar antes.";
   if (m.includes("total_negativo")) return "Los descuentos superan el sueldo del mes.";
   if (m.includes("empleados_check") || m.includes("comision_valor")) return "El porcentaje de comisión no puede ser mayor a 100.";
+  if (m.includes("pedido_vacio")) return "Agregá al menos un producto.";
+  if (m.includes("medio_invalido")) return "Elegí cómo paga: efectivo, QR o tarjeta.";
   if (m.includes("mesa_invalida")) return "Este QR no corresponde a una mesa activa.";
   if (m.includes("codigo_invalido")) return "El código del equipo no existe. Pedíselo al dueño.";
   if (m.includes("ya_tiene_negocio")) return "Tu usuario ya pertenece a un negocio.";

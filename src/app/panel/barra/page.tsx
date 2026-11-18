@@ -76,12 +76,13 @@ export default function Barra() {
                     return (
                       <li key={p.id} className={`tarjeta p-3 ${demora ? "border-frutilla ring-2 ring-frutilla/30" : ""}`}>
                         <div className="flex items-baseline justify-between">
-                          <p className="font-titulo text-2xl">Mesa {p.numero_mesa}</p>
+                          <p className="font-titulo text-2xl">{p.origen === "mostrador" ? `Mostrador · N° ${p.numero_ticket}` : `Mesa ${p.numero_mesa}`}</p>
                           <p className={`text-sm font-semibold ${demora ? "text-frutilla-osc" : "text-suave"}`}>
                             {espera} min · {hora(p.creado_at)}
                           </p>
                         </div>
                         {p.origen === "mozo" && <p className="text-xs font-semibold uppercase text-suave">cargado por el mozo</p>}
+                        {p.origen === "mostrador" && <p className="text-xs font-semibold uppercase text-suave">para llevar · ya cobrado</p>}
                         <ul className="mt-2 space-y-1.5">
                           {p.items_pedido?.map((it) => (
                             <li key={it.id} className="leading-snug">
