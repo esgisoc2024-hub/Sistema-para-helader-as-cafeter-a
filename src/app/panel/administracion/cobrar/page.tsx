@@ -61,7 +61,7 @@ export default function CuentasPorCobrar() {
 
       {visibles.length === 0 && (
         <p className="tarjeta mt-4 p-6 text-center text-suave">
-          {filtro === "deben" && !b ? "Nadie te debe plata. 🎉 Las mesas fiadas y las deudas que anotes aparecen acá." : "No hay clientes en esta vista."}
+          {filtro === "deben" && !b ? "Nadie te debe plata. 🎉 Las deudas que anotes aparecen acá." : "No hay clientes en esta vista."}
         </p>
       )}
       <ul className="mt-4 grid gap-3 md:grid-cols-2">

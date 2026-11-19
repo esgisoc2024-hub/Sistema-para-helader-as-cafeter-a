@@ -59,7 +59,7 @@ const PLANES = [
   { nombre: "Básico", para: "Para ordenar el salón",
     incluye: ["Carta por QR con tu marca", "Comandas con campanita siempre activa", "Aviso en la barra cuando una mesa llama", "Mapa de mesas y cobro", "Sabores y opciones por producto", "Reportes de ventas y espera"] },
   { nombre: "Premium", para: "Para saber si ganás plata", destacado: true,
-    incluye: ["Todo lo del plan Básico", "Caja: apertura y cierre", "Libro diario", "Cuentas por pagar y gastos fijos", "Proveedores, costos y deudas", "Cuentas por cobrar y mesas fiadas", "Empleados y sueldos con comisiones", "Costos, márgenes y resultado del mes"] },
+    incluye: ["Todo lo del plan Básico", "Caja: apertura y cierre", "Libro diario", "Cuentas por pagar y gastos fijos", "Proveedores, costos y deudas", "Cuentas por cobrar", "Empleados y sueldos con comisiones", "Costos, márgenes y resultado del mes"] },
 ];
 
 const PREGUNTAS = [
