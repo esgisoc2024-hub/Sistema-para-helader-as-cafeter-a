@@ -87,9 +87,7 @@ export default function Mesas() {
 function DetalleMesa({ mesa, pedidos, total, onCerrar, onCambio }: {
   mesa: Mesa; pedidos: Pedido[]; total: number; onCerrar: () => void; onCambio: () => void;
 }) {
-  const { negocio } = usePanel();
   const [cobrando, setCobrando] = useState(false);
-  const [fiando, setFiando] = useState(false);
   const [error, setError] = useState("");
 
   async function atendido() {
@@ -97,10 +95,11 @@ function DetalleMesa({ mesa, pedidos, total, onCerrar, onCambio }: {
     onCambio();
   }
 
-  async function cobrar(medio: MedioPago | "fiado", cliente?: { id?: string; nuevo?: string }) {
+  // Las mesas se cobran en el momento: el fiado se sacó porque hoy los locales no fían.
+  async function cobrar(medio: MedioPago) {
     setError("");
     const { error } = await supabase().rpc("cerrar_mesa", {
-      p_mesa: mesa.id, p_medio: medio, p_deudor: cliente?.id ?? null, p_nuevo_deudor: cliente?.nuevo ?? null,
+      p_mesa: mesa.id, p_medio: medio, p_deudor: null, p_nuevo_deudor: null,
     });
     if (error) return setError(mensajeError(error));
     setCobrando(false);
@@ -155,16 +154,11 @@ function DetalleMesa({ mesa, pedidos, total, onCerrar, onCambio }: {
         <div className="sticky bottom-0 -mx-5 mt-4 border-t border-borde bg-crema px-5 pt-4">
           <div className="flex justify-between font-titulo text-2xl"><span>Total</span><span>{precio(total)}</span></div>
           {error && <p role="alert" className="mt-2 text-sm text-frutilla-osc">{error}</p>}
-          {fiando ? (
-            <Fiar total={total} onFiar={(c) => cobrar("fiado", c)} onVolver={() => setFiando(false)} />
-          ) : cobrando ? (
+          {cobrando ? (
             <div className="mt-3 grid grid-cols-3 gap-2">
               {(["efectivo", "qr", "tarjeta"] as const).map((m) => (
                 <button key={m} className="btn-primario px-2 capitalize" onClick={() => cobrar(m)}>{m === "qr" ? "QR / MP" : m}</button>
               ))}
-              {negocio.plan === "premium" && (
-                <button className="btn-secundario col-span-3" onClick={() => setFiando(true)}>Fiado (lo paga después)</button>
-              )}
               <button className="col-span-3 text-sm text-suave underline" onClick={() => setCobrando(false)}>Volver</button>
             </div>
           ) : (
@@ -177,51 +171,6 @@ function DetalleMesa({ mesa, pedidos, total, onCerrar, onCambio }: {
           )}
         </div>
       </aside>
-    </div>
-  );
-}
-
-/* Fiado: la mesa se cierra y la cuenta queda anotada como deuda del cliente. */
-function Fiar({ total, onFiar, onVolver }: { total: number; onFiar: (c: { id?: string; nuevo?: string }) => void; onVolver: () => void }) {
-  const [clientes, setClientes] = useState<{ id: string; nombre: string; saldo: number }[] | null>(null);
-  const [elegido, setElegido] = useState("");
-  const [nuevo, setNuevo] = useState("");
-  const [busqueda, setBusqueda] = useState("");
-
-  useEffect(() => {
-    supabase().rpc("clientes_para_fiado").then(({ data }) => setClientes((data ?? []) as { id: string; nombre: string; saldo: number }[]));
-  }, []);
-
-  const b = busqueda.trim().toLowerCase();
-  const lista = (clientes ?? []).filter((c) => !b || c.nombre.toLowerCase().includes(b));
-  const listo = Boolean(elegido || nuevo.trim());
-
-  return (
-    <div className="mt-3 animate-entrar">
-      <p className="font-extrabold">¿A quién se le fían {precio(total)}?</p>
-      {clientes && clientes.length > 0 && (
-        <>
-          <input className="campo mt-2 py-2" placeholder="Buscar cliente" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
-          <ul className="mt-2 max-h-48 space-y-1 overflow-y-auto">
-            {lista.map((c) => (
-              <li key={c.id}>
-                <button onClick={() => { setElegido(c.id); setNuevo(""); }} aria-pressed={elegido === c.id}
-                  className={`flex w-full justify-between rounded-xl border px-3 py-2 text-left text-sm ${elegido === c.id ? "border-frutilla bg-rubor font-extrabold" : "border-borde bg-papel"}`}>
-                  <span>{c.nombre}</span>
-                  {Number(c.saldo) > 0 && <span className="text-frutilla-osc">ya debe {precio(c.saldo)}</span>}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-      <label className="etiqueta mt-3" htmlFor="fiar-nuevo">Cliente nuevo</label>
-      <input id="fiar-nuevo" className="campo py-2" placeholder="Nombre (ej: Doña Rosa)" value={nuevo}
-        onChange={(e) => { setNuevo(e.target.value); setElegido(""); }} />
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <button className="btn-secundario" onClick={onVolver}>Volver</button>
-        <button className="btn-primario" disabled={!listo} onClick={() => onFiar(elegido ? { id: elegido } : { nuevo: nuevo.trim() })}>Fiar y cerrar</button>
-      </div>
     </div>
   );
 }

@@ -18,7 +18,7 @@ const SECCIONES = [
 const INCLUYE = [
   ["Caja", "Apertura y cierre, con lo que debería haber y lo que sobró o faltó."],
   ["Libro diario", "Todo lo que entró y salió, día por día."],
-  ["Cuentas por cobrar", "Quién te debe y cuánto, incluidas las mesas fiadas."],
+  ["Cuentas por cobrar", "Quién te debe y cuánto."],
   ["Gastos y cuentas por pagar", "Alquiler, luz, impuestos y vencimientos."],
   ["Proveedores", "Qué te vende cada uno, a qué costo y cuánto le debés."],
   ["Empleados y sueldos", "Sueldos con comisiones a medida."],
