@@ -2,7 +2,7 @@
 
 import { Fondo } from "@/components/Fondo";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { mensajeError } from "@/lib/formato";
@@ -16,6 +16,26 @@ export default function Bienvenida() {
   const [conDemo, setConDemo] = useState(true);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [preparando, setPreparando] = useState(true);
+
+  // Si se registró desde /registro, sus datos vienen en la cuenta: se arma el local solo al confirmar el email.
+  useEffect(() => {
+    (async () => {
+      const sb = supabase();
+      const { data } = await sb.auth.getUser();
+      const m = (data.user?.user_metadata ?? {}) as { nombre?: string; negocio?: string; telefono?: string; plan?: string; con_demo?: boolean };
+      if (!data.user) { router.replace("/login"); return; }
+      if (m.negocio && m.nombre) {
+        const { error } = await sb.rpc("crear_negocio", {
+          p_nombre: m.negocio, p_mi_nombre: m.nombre, p_con_demo: m.con_demo !== false, p_telefono: m.telefono ?? null, p_plan_solicitado: m.plan ?? null,
+        });
+        if (!error || error.message.includes("ya_tiene_negocio")) { window.location.href = "/panel"; return; }
+        setMiNombre(m.nombre); setNegocio(m.negocio);
+        setError(mensajeError(error));
+      }
+      setPreparando(false);
+    })();
+  }, [router]);
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -28,6 +48,8 @@ export default function Bienvenida() {
     if (error) return setError(mensajeError(error));
     window.location.href = "/panel";
   }
+
+  if (preparando) return <main className="grid min-h-dvh place-items-center text-suave">Preparando tu local…</main>;
 
   return (
     <main className="grid min-h-dvh place-items-center px-4">

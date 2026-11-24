@@ -312,3 +312,10 @@ body {
 .lp-video-play:hover .lp-video-boton { transform: scale(1.07); box-shadow: 0 0 0 16px rgba(201,169,110,0.2); }
 @keyframes lp-latido { 50% { box-shadow: 0 0 0 18px rgba(201,169,110,0.08); } }
 .lp-video-play:focus-visible { outline: 3px solid var(--lp-laton); outline-offset: -6px; }
+
+/* ── Registro: campos con la paleta de la página de inicio ── */
+.lp-campo { width: 100%; border-radius: 14px; border: 1px solid var(--lp-linea); background: var(--lp-papel); padding: 0.8rem 1rem;
+  color: var(--lp-espresso); outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+.lp-campo::placeholder { color: #a89a8e; }
+.lp-campo:focus { border-color: var(--lp-laton); box-shadow: 0 0 0 4px rgba(201,169,110,0.22); }
+.lp-btn:disabled { opacity: 0.6; pointer-events: none; }

@@ -7,7 +7,7 @@ import { mensajeError, precio } from "@/lib/formato";
 
 type Estado = "prueba" | "activo" | "suspendido";
 interface Local {
-  id: string; nombre: string; estado: Estado; plan: "basico" | "premium"; alta: string; logo_url: string | null;
+  id: string; nombre: string; estado: Estado; plan: "basico" | "premium"; plan_solicitado: "basico" | "premium" | null; telefono: string | null; alta: string; logo_url: string | null;
   duenio: string | null; email: string | null; equipo: number; mesas: number; productos: number;
   pedidos_7d: number; pedidos_30d: number; ventas_30d: number; ultimo_pedido: string | null;
   contacto: string | null; pagado_hasta: string | null; notas: string | null;
@@ -101,6 +101,10 @@ export default function Admin() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-lg font-extrabold">{l.nombre}</p>
                   <p className="truncate text-sm text-suave">{l.duenio ?? "Sin dueño"}{l.email && ` · ${l.email}`}</p>
+                  {l.telefono && <p className="truncate text-sm text-suave">WhatsApp: {l.telefono}</p>}
+                  {l.plan_solicitado === "premium" && l.plan !== "premium" && (
+                    <p className="mt-1 inline-block rounded-full bg-limon/30 px-2 py-0.5 text-xs font-extrabold">Pidió Premium al registrarse</p>
+                  )}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <span className={`rounded-full px-3 py-1 text-xs font-extrabold ${ESTADOS[l.estado].clase}`}>{ESTADOS[l.estado].texto}</span>

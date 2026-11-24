@@ -258,5 +258,15 @@ select (r->>'resultado')::numeric = (r->>'ventas')::numeric + (r->>'otros_ingres
   from public.resultado_mes(current_date) r;
 set request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
 select pg_temp.falla($q$ select public.resultado_mes(current_date) $q$) as basico_sin_resultado;
+-- ── Registro en un paso ──
+reset role;
+insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000d1', 'nueva@ejemplo.com');
+set role authenticated; set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000d1';
+select public.crear_negocio('Café Nuevo', 'Lu', true, ' 11 5555-0101 ', 'premium') is not null as registrado;
+select plan = 'basico' and plan_solicitado = 'premium' and telefono = '11 5555-0101' as pidio_premium_sin_activarlo from negocios where nombre = 'Café Nuevo';
+select pg_temp.falla($q$ select public.crear_negocio('Otro', 'Lu') $q$) as no_crea_dos;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000ad';
+select (l->>'plan_solicitado') = 'premium' and (l->>'telefono') = '11 5555-0101' as admin_ve_pedido
+  from jsonb_array_elements(public.admin_locales()) l where l->>'nombre' = 'Café Nuevo';
 reset role;
 select 'TODO OK' as resultado;

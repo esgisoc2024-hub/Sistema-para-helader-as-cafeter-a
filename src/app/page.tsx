@@ -90,7 +90,7 @@ export default function Inicio() {
           </div>
           <div className="ml-auto flex items-center gap-2 md:ml-0">
             <Link href="/login" className="lp-enlace hidden px-2 text-sm sm:inline">Ingresar</Link>
-            <Link href="/login?modo=registro" className="lp-btn lp-btn-claro whitespace-nowrap">Crear mi local</Link>
+            <Link href="/registro" className="lp-btn lp-btn-claro whitespace-nowrap">Crear mi local</Link>
           </div>
         </nav>
       </header>
@@ -114,7 +114,7 @@ export default function Inicio() {
                 Para heladerías y cafeterías con alma.
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
-                <Link href="/login?modo=registro" className="lp-btn lp-btn-laton">Crear mi local</Link>
+                <Link href="/registro" className="lp-btn lp-btn-laton">Crear mi local</Link>
                 <Link href={DEMO} className="lp-btn lp-btn-linea">Probar la carta</Link>
               </div>
               <p className="mt-6 text-sm tracking-wide text-white/50">Sin instalar nada · Sin permanencia · Con tu marca</p>
@@ -315,7 +315,7 @@ export default function Inicio() {
                       <li key={x} className="flex gap-3"><span aria-hidden className="text-[var(--lp-laton)]">—</span>{x}</li>
                     ))}
                   </ul>
-                  <Link href="/login?modo=registro" className={`lp-btn mt-9 w-full ${p.destacado ? "lp-btn-laton" : "lp-btn-oscuro"}`}>
+                  <Link href={`/registro?plan=${p.nombre === "Premium" ? "premium" : "basico"}`} className={`lp-btn mt-9 w-full ${p.destacado ? "lp-btn-laton" : "lp-btn-oscuro"}`}>
                     Empezar con {p.nombre}
                   </Link>
                 </article>
@@ -347,7 +347,7 @@ export default function Inicio() {
             <p className="lp-mano text-3xl text-[var(--lp-laton)]">los lugares cambian, la sensación queda.</p>
             <h2 className="lp-titulo mt-3 text-4xl text-white sm:text-6xl">Tu próximo sábado, <em>sin mesas esperando.</em></h2>
             <div className="mt-10 flex flex-wrap justify-center gap-3">
-              <Link href="/login?modo=registro" className="lp-btn lp-btn-laton">Crear mi local</Link>
+              <Link href="/registro" className="lp-btn lp-btn-laton">Crear mi local</Link>
               <Link href={DEMO} className="lp-btn lp-btn-linea">Probar la carta</Link>
             </div>
           </div>
@@ -360,7 +360,7 @@ export default function Inicio() {
           <span>Pedidos en mesa para heladerías y cafeterías.</span>
           <span className="ml-auto flex gap-5">
             <Link href="/login" className="hover:text-white">Ingresar</Link>
-            <Link href="/login?modo=registro" className="hover:text-white">Crear mi local</Link>
+            <Link href="/registro" className="hover:text-white">Crear mi local</Link>
           </span>
           <p className="w-full text-xs text-white/35">Fotos: {CREDITOS.join(", ")} en Unsplash.</p>
         </div>

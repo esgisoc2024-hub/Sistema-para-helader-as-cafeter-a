@@ -26,6 +26,9 @@ function Formulario() {
   const [codigo, setCodigo] = useState("");
   const [usuario, setUsuario] = useState("");
 
+  // El registro de dueños está en /registro (formulario en un paso).
+  useEffect(() => { if (params.get("modo") === "registro") router.replace("/registro"); }, [params, router]);
+
   // La tablet del local recuerda el código para no tipearlo cada vez.
   useEffect(() => {
     try {
@@ -107,10 +110,8 @@ function Formulario() {
         {error && <p role="alert" className="mt-3 text-sm text-frutilla-osc">{error}</p>}
         {info && <p role="status" className="mt-3 text-sm text-menta">{info}</p>}
         <button className="btn-primario mt-5 w-full" disabled={cargando}>{cargando ? "Un momento…" : registro ? "Crear cuenta" : "Ingresar"}</button>
-        {(modo === "duenio" || registro) && (
-          <button type="button" className="mt-3 w-full text-sm text-suave underline" onClick={() => { setRegistro(!registro); setError(""); setInfo(""); }}>
-            {registro ? "Ya tengo cuenta" : "No tengo cuenta, quiero crear una"}
-          </button>
+        {modo === "duenio" && (
+          <Link href="/registro" className="mt-3 block w-full text-center text-sm text-suave underline">No tengo cuenta, quiero crear una</Link>
         )}
         {modo === "equipo" && !registro && <p className="mt-3 text-center text-xs text-suave">Tu usuario y contraseña te los da el dueño del local.</p>}
       </form>
