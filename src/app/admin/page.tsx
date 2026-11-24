@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { mensajeError, precio } from "@/lib/formato";
-import { Fondo } from "@/components/Fondo";
 
 type Estado = "prueba" | "activo" | "suspendido";
 interface Local {
@@ -73,8 +72,7 @@ export default function Admin() {
     && (!b || `${l.nombre} ${l.duenio ?? ""} ${l.email ?? ""}`.toLowerCase().includes(b)));
 
   return (
-    <main className="mx-auto min-h-dvh max-w-5xl px-4 py-6">
-      <Fondo />
+    <main className="tema-saas min-h-dvh"><div className="mx-auto max-w-5xl px-4 py-6">
       <div className="flex flex-wrap items-baseline gap-3">
         <h1 className="font-titulo text-3xl">Mis locales</h1>
         <span className="text-sm text-suave">Solo vos ves esta pantalla</span>
@@ -131,7 +129,7 @@ export default function Admin() {
       {visibles.length === 0 && <p className="tarjeta mt-4 p-6 text-center text-suave">No hay locales en esta vista.</p>}
 
       {editando && <Editar local={editando} onCerrar={() => setEditando(null)} onGuardado={() => { setEditando(null); cargar(); }} />}
-    </main>
+    </div></main>
   );
 }
 

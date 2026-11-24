@@ -1,19 +1,6 @@
 "use client";
 // Sección Administración (plan Premium). Solo el dueño la ve en el menú.
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { usePanel } from "@/components/PanelContexto";
-
-const SECCIONES = [
-  { href: "/panel/administracion/resultado", texto: "Resultado" },
-  { href: "/panel/administracion/caja", texto: "Caja" },
-  { href: "/panel/administracion/libro", texto: "Libro diario" },
-  { href: "/panel/administracion/cobrar", texto: "Cuentas por cobrar" },
-  { href: "/panel/administracion/pagar", texto: "Cuentas por pagar" },
-  { href: "/panel/administracion/proveedores", texto: "Proveedores" },
-  { href: "/panel/administracion/empleados", texto: "Empleados" },
-  { href: "/panel/administracion/margenes", texto: "Precios y márgenes" },
-];
 
 const INCLUYE = [
   ["Caja", "Apertura y cierre, con lo que debería haber y lo que sobró o faltó."],
@@ -28,7 +15,6 @@ const INCLUYE = [
 
 export default function AdministracionLayout({ children }: { children: React.ReactNode }) {
   const { negocio, usuario } = usePanel();
-  const ruta = usePathname();
 
   if (usuario.rol !== "duenio") {
     return <p className="tarjeta p-6 text-center text-suave">Esta sección es solo para el dueño del local.</p>;
@@ -53,18 +39,5 @@ export default function AdministracionLayout({ children }: { children: React.Rea
     );
   }
 
-  return (
-    <div>
-      <nav aria-label="Administración" className="mb-5 flex flex-wrap gap-2">
-        {SECCIONES.map((s) => (
-          <Link key={s.href} href={s.href}
-            className={`rounded-full px-4 py-2 text-sm font-extrabold transition ${
-              ruta.startsWith(s.href) || (ruta === "/panel/administracion" && s.href.endsWith("/resultado")) ? "bg-frutilla text-white" : "bg-papel/85"}`}>
-            {s.texto}
-          </Link>
-        ))}
-      </nav>
-      {children}
-    </div>
-  );
+  return <>{children}</>;
 }
