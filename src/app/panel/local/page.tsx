@@ -6,11 +6,9 @@ import { supabase } from "@/lib/supabase";
 import { mensajeError } from "@/lib/formato";
 import { usePanel } from "@/components/PanelContexto";
 import { Apariencia } from "@/components/Apariencia";
-import type { Mesa, Rol, Usuario } from "@/lib/tipos";
+import { Equipo } from "@/components/Equipo";
+import type { Mesa, Usuario } from "@/lib/tipos";
 
-const ROLES: { valor: Rol; texto: string }[] = [
-  { valor: "mozo", texto: "Mozo / cajero" }, { valor: "barra", texto: "Barra / cocina" }, { valor: "duenio", texto: "Dueño / encargado" },
-];
 
 export default function Local() {
   const { negocio, usuario } = usePanel();
@@ -49,41 +47,11 @@ export default function Local() {
     cargar();
   }
 
-  async function cambiarRol(u: Usuario, rol: Rol) {
-    const { error } = await supabase().from("usuarios").update({ rol }).eq("id", u.id);
-    if (error) setError(mensajeError(error));
-    cargar();
-  }
-
-  async function quitar(u: Usuario) {
-    if (!confirm(`¿Quitar a ${u.nombre} del equipo?`)) return;
-    await supabase().from("usuarios").delete().eq("id", u.id);
-    cargar();
-  }
-
   return (
     <div>
       <div className="no-imprimir mb-4"><Apariencia negocio={negocio} /></div>
       <section className="no-imprimir mb-8 grid gap-4 md:grid-cols-2">
-        <div className="tarjeta p-5">
-          <h2 className="font-titulo text-xl">Equipo</h2>
-          <p className="mt-1 text-sm text-suave">
-            Para sumar a alguien: que cree su cuenta, elija “Soy del equipo” y ponga este código.
-          </p>
-          <p className="mt-3 inline-block rounded-xl bg-choco px-4 py-2 font-mono text-2xl font-bold tracking-[0.3em] text-white">{negocio.codigo_equipo}</p>
-          <ul className="mt-4 divide-y divide-borde">
-            {equipo.map((u) => (
-              <li key={u.id} className="flex items-center gap-2 py-2">
-                <span className="flex-1 font-medium">{u.nombre}{u.id === usuario.id && " (vos)"}</span>
-                <select aria-label={`Rol de ${u.nombre}`} className="rounded-lg border border-borde bg-papel px-2 py-1.5 text-sm" value={u.rol}
-                  disabled={u.id === usuario.id} onChange={(e) => cambiarRol(u, e.target.value as Rol)}>
-                  {ROLES.map((r) => <option key={r.valor} value={r.valor}>{r.texto}</option>)}
-                </select>
-                {u.id !== usuario.id && <button aria-label={`Quitar a ${u.nombre}`} className="text-suave" onClick={() => quitar(u)}>✕</button>}
-              </li>
-            ))}
-          </ul>
-        </div>
+        <Equipo negocio={negocio} yo={usuario} equipo={equipo} onCambio={cargar} />
         <div className="tarjeta p-5">
           <h2 className="font-titulo text-xl">Mesas</h2>
           <p className="mt-1 text-sm text-suave">Cada mesa tiene su QR. Imprimilos y pegalos en las mesas.</p>

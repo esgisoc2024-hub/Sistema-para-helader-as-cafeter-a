@@ -3,7 +3,7 @@ export type EstadoPedido = "nuevo" | "preparando" | "listo" | "entregado" | "can
 export type EstadoMesa = "libre" | "ocupada" | "pide_cuenta";
 export type MedioPago = "efectivo" | "qr" | "tarjeta";
 
-export interface Usuario { id: string; negocio_id: string; nombre: string; rol: Rol }
+export interface Usuario { id: string; negocio_id: string; nombre: string; rol: Rol; usuario?: string | null }
 export interface Negocio { id: string; nombre: string; direccion: string | null; codigo_equipo: string; logo_url: string | null; color: string;
   portada_url: string | null; portada_tipo: "imagen" | "video" | null;
   estado: "prueba" | "activo" | "suspendido"; plan: "basico" | "premium" }

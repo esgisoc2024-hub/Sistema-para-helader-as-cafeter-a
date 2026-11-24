@@ -18,6 +18,8 @@ Resuelve los dolores relevados en reseñas: demora en mesa, faltantes que siguen
 
 **Plan Premium → Administración** (`/panel/administracion`, solo el dueño de un local Premium): caja con apertura, movimientos y cierre con diferencia; libro diario por día; cuentas por pagar con gastos fijos mensuales y pagos parciales; proveedores con artículos, costos, plazo de pago y deuda; cuentas por cobrar con clientes, deudas, cobros y "Fiado" al cerrar una mesa; empleados con comisión configurable y liquidación mensual que pasa a cuentas por pagar; precios, costos y márgenes con historial de precios; resultado del mes comparado con el anterior. Diseño completo y próximas etapas en `docs/superpowers/specs/2026-11-17-modulo-administrativo-design.md`.
 
+**Equipo**: el dueño crea las cuentas de sus empleados desde Local y QR → Equipo (nombre, usuario, contraseña y acceso: Mozo/cajero o Barra/cocina), sin email. Las crea la función de Supabase `supabase/functions/equipo` (desplegar con `supabase functions deploy equipo`). El empleado entra en Ingresar → pestaña Equipo con el código del local, su usuario y su contraseña.
+
 **Panel de la plataforma** (`/admin`, solo cuentas en la tabla `administradores`): lista de todos los locales con su actividad, estado (prueba, activo, suspendido), pago y notas privadas. Un local suspendido deja de recibir pedidos por QR.
 
 Fuera de la v1: facturación electrónica ARCA, cobro online en el QR, stock de insumos por receta, delivery y reservas.
