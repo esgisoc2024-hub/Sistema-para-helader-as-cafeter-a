@@ -9,9 +9,7 @@ import { Recorrido, type Momento } from "@/components/Recorrido";
 import charla from "../../public/inicio/charla.webp";
 import terraza from "../../public/inicio/mesa-terraza.webp";
 // Fotos de Unsplash (licencia Unsplash: uso comercial libre). Créditos en el pie y en docs/creditos-fotos.md
-import gelateria from "../../public/inicio/gelateria.webp";
 import latte from "../../public/inicio/latte-barista.webp";
-import conoCuchara from "../../public/inicio/cono-cuchara.webp";
 import conoCalle from "../../public/inicio/cono-calle.webp";
 import conoFlorencia from "../../public/inicio/cono-florencia.webp";
 import conoLimon from "../../public/inicio/cono-limon.webp";
@@ -19,6 +17,8 @@ import conoChocolate from "../../public/inicio/cono-chocolate.webp";
 import cafeBiscotti from "../../public/inicio/cafe-biscotti.webp";
 import barraCafe from "../../public/inicio/barra-cafe.webp";
 import salonCafe from "../../public/inicio/salon-cafe.webp";
+import mesaRestaurante from "../../public/inicio/mesa-restaurante.webp";
+import brindis from "../../public/inicio/brindis-cafe.webp";
 
 // Mesa 1 de "Heladería Demo": carta de prueba en modo demo (no crea pedidos reales).
 const DEMO = "/m/e6b698b6ab?demo=1";
@@ -71,7 +71,7 @@ const PREGUNTAS = [
   { p: "¿Hay permanencia?", r: "No. Se paga mes a mes y lo das de baja cuando quieras." },
 ];
 
-const CREDITOS = ["Green Liu", "Di Bella Coffee", "Gabriela Portilho", "Vanessa", "carlos lugo", "Dimitar Krastev", "Alexis Rodriguez", "Sadia Alam", "Jonathan Borba", "Petr Sevcovic"];
+const CREDITOS = ["Jonas Jacobsson", "Mona Jain", "Di Bella Coffee", "Vanessa", "carlos lugo", "Dimitar Krastev", "Alexis Rodriguez", "Sadia Alam", "Jonathan Borba", "Petr Sevcovic"];
 
 export default function Inicio() {
   return (
@@ -95,14 +95,14 @@ export default function Inicio() {
       </header>
 
       <main>
-        {/* ── Portada en capas: fondo, fotos flotando a distintas distancias y avisos al frente ── */}
+        {/* ── Portada: el celular apoyado en la mesa y los avisos de la barra flotando arriba, en vidrio ── */}
         <section className="lp-portada">
-          <div aria-hidden className="lp-portada-fondo lp-capa" style={{ "--d": -14 } as React.CSSProperties}>
-            <Image src={gelateria} alt="" priority sizes="100vw" className="lp-respira h-full w-full object-cover" />
+          <div aria-hidden className="lp-portada-fondo lp-capa" style={{ "--d": -12 } as React.CSSProperties}>
+            <Image src={mesaRestaurante} alt="" priority sizes="100vw" className="lp-respira h-full w-full object-cover" />
           </div>
           <div aria-hidden className="lp-portada-velo" />
 
-          <div className="relative z-10 mx-auto grid min-h-[100svh] max-w-6xl items-center gap-10 px-4 pb-16 pt-28 md:grid-cols-[1fr_1.05fr]">
+          <div className="relative z-10 mx-auto grid min-h-[100svh] max-w-6xl items-center gap-6 px-4 pb-10 pt-28 md:grid-cols-[1fr_1.1fr] md:gap-10">
             <div className="lp-entrada">
               <p className="lp-mano text-2xl text-[var(--lp-laton)]">helado, café & mesas bien atendidas.</p>
               <h1 className="lp-titulo mt-3 text-[2.9rem] leading-[1.02] text-white sm:text-6xl md:text-[4.4rem]">
@@ -119,40 +119,42 @@ export default function Inicio() {
               <p className="mt-6 text-sm tracking-wide text-white/50">Sin instalar nada · Sin permanencia · Con tu marca</p>
             </div>
 
-            <div className="lp-escena" aria-hidden>
-              <div className="lp-capa lp-carta lp-carta-atras" style={{ "--d": 10 } as React.CSSProperties}>
-                <div className="lp-flota" style={{ animationDelay: "-2s" }}>
-                  <Image src={latte} alt="" sizes="260px" className="h-full w-full object-cover" />
-                </div>
+            <div className="lp-mesa" aria-hidden>
+              {/* Brindis: la mano levanta el café hacia la cámara */}
+              <div className="lp-capa lp-brindis" style={{ "--d": 14 } as React.CSSProperties}>
+                <div><Image src={brindis} alt="" sizes="(min-width: 768px) 240px, 40vw" className="h-full w-full object-cover" /></div>
               </div>
-              <div className="lp-capa lp-carta lp-carta-centro" style={{ "--d": 22 } as React.CSSProperties}>
-                <div className="lp-flota">
-                  <Image src={charla} alt="" priority sizes="(min-width: 768px) 320px, 60vw" className="h-full w-full object-cover" />
-                </div>
-              </div>
-              <div className="lp-capa lp-carta lp-carta-frente" style={{ "--d": 38 } as React.CSSProperties}>
-                <div className="lp-flota" style={{ animationDelay: "-4s" }}>
-                  <Image src={conoCuchara} alt="" sizes="200px" className="h-full w-full object-cover" />
+
+              {/* Celular apoyado sobre la mesa */}
+              <div className="lp-capa lp-movil-caja" style={{ "--d": 24 } as React.CSSProperties}>
+                <div className="lp-movil-sombra" />
+                <div className="lp-movil">
+                  <div className="lp-movil-pantalla">
+                    <span className="lp-movil-reflejo" />
+                    <p className="lp-titulo text-[15px] text-white/90">Mesa Match</p>
+                    <p className="text-[9px] tracking-[0.2em] text-white/40 uppercase">Barra · en vivo</p>
+                    <div className="mt-3 space-y-1.5">{[0, 1, 2, 3].map((i) => <span key={i} className="lp-movil-linea" style={{ width: `${90 - i * 14}%` }} />)}</div>
+                  </div>
                 </div>
               </div>
 
-              {/* Trazos a mano, como las ilustraciones de las fotos */}
-              <svg className="lp-capa lp-trazos" style={{ "--d": 30 } as React.CSSProperties} viewBox="0 0 400 460" fill="none">
-                <path className="lp-trazo" pathLength={1} d="M70 120c-8-14 6-22 0-36s8-20 2-34" style={{ animationDelay: "1.2s" }} />
-                <path className="lp-trazo" pathLength={1} d="M88 118c-8-14 6-22 0-36s8-20 2-34" style={{ animationDelay: "1.4s" }} />
-                <path className="lp-trazo" pathLength={1} d="M60 300c-10-14-30-4-22 10l22 20 22-20c8-14-12-24-22-10z" style={{ animationDelay: "1.8s" }} />
-                <path className="lp-trazo" pathLength={1} d="M350 300l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" style={{ animationDelay: "2.4s" }} />
-                <path className="lp-trazo" pathLength={1} d="M20 230l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" style={{ animationDelay: "2.6s" }} />
-              </svg>
-
-              <div className="lp-capa lp-noti lp-noti-1" style={{ "--d": 50 } as React.CSSProperties}>
-                <span className="lp-punto" /> <b>Mesa 4</b> · pedido enviado
-                <span className="block text-[12px] text-[var(--lp-suave)]">1 cucurucho · 2 flat white</span>
-              </div>
-              <div className="lp-capa lp-noti lp-noti-2" style={{ "--d": 56 } as React.CSSProperties}>
-                <span className="lp-campanita">🔔</span> <b>Comanda en la barra</b>
-              </div>
-              <p className="lp-capa lp-mano lp-nota-foto" style={{ "--d": 44 } as React.CSSProperties}>cada mesa, a tiempo ♡</p>
+              {/* Avisos de vidrio que salen del celular y quedan flotando */}
+              <ol className="lp-capa lp-avisos" style={{ "--d": 44 } as React.CSSProperties}>
+                {[
+                  { icono: "🔔", titulo: "Mesa 4 · Pedido nuevo", texto: "1 cucurucho · 2 flat white", tono: "lp-tono-laton" },
+                  { icono: "✋", titulo: "Mesa 7 llama al mozo", texto: "Esperando hace 1 min", tono: "lp-tono-terracota" },
+                  { icono: "🧾", titulo: "Mesa 2 pide la cuenta", texto: "$ 18.400 · efectivo", tono: "lp-tono-salvia" },
+                ].map((n, i) => (
+                  <li key={n.titulo} className="lp-aviso" style={{ "--i": i } as React.CSSProperties}>
+                    <div className="lp-aviso-vidrio">
+                      <span className={`lp-aviso-icono ${n.tono}`}>{n.icono}</span>
+                      <span className="min-w-0 flex-1"><b className="block truncate">{n.titulo}</b><span className="text-white/70">{n.texto}</span></span>
+                      <span className="self-start text-[11px] text-white/50">ahora</span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <p className="lp-capa lp-mano lp-nota-mesa" style={{ "--d": 34 } as React.CSSProperties}>cada mesa, a tiempo ♡</p>
             </div>
           </div>
           <div aria-hidden className="lp-bajar hidden md:block">deslizá</div>
