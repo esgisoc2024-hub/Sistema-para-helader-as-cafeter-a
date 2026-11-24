@@ -9,6 +9,14 @@ import { supabase } from "@/lib/supabase";
 import { mensajeError } from "@/lib/formato";
 import { emailEquipo } from "@/lib/equipo";
 
+// Cuentas de demostración (local "Heladería Desire"): para mostrar cómo ve el sistema cada puesto.
+const DEMO_CODIGO = "721F26";
+const DEMO_CLAVE = "prueba123";
+const DEMO_CUENTAS = [
+  { usuario: "mozo", texto: "Entrar como mozo", detalle: "Mostrador, Barra y Mesas" },
+  { usuario: "barra", texto: "Entrar como barra", detalle: "Mostrador y Barra" },
+];
+
 function Formulario() {
   const router = useRouter();
   const params = useSearchParams();
@@ -30,6 +38,15 @@ function Formulario() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [cargando, setCargando] = useState(false);
+
+  async function entrarDemo(u: string) {
+    setModo("equipo"); setRegistro(false); setCodigo(DEMO_CODIGO); setUsuario(u); setClave(DEMO_CLAVE);
+    setError(""); setInfo(""); setCargando(true);
+    const { error } = await supabase().auth.signInWithPassword({ email: emailEquipo(u, DEMO_CODIGO), password: DEMO_CLAVE });
+    setCargando(false);
+    if (error) return setError("No se pudo entrar con la cuenta de demostración. Probá de nuevo en un momento.");
+    router.replace("/panel");
+  }
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -53,9 +70,10 @@ function Formulario() {
   }
 
   return (
-    <main className="grid min-h-dvh place-items-center px-4">
+    <main className="grid min-h-dvh place-items-center px-4 py-8">
       <Fondo />
-      <form onSubmit={enviar} className="tarjeta w-full max-w-sm p-6">
+      <div className="w-full max-w-sm space-y-4">
+      <form onSubmit={enviar} className="tarjeta w-full p-6">
         <Link href="/" className="text-sm font-semibold text-frutilla">Mesa Match</Link>
         <h1 className="mt-1 font-titulo text-2xl">{registro ? "Crear cuenta" : "Ingresar"}</h1>
         {!registro && (
@@ -96,6 +114,25 @@ function Formulario() {
         )}
         {modo === "equipo" && !registro && <p className="mt-3 text-center text-xs text-suave">Tu usuario y contraseña te los da el dueño del local.</p>}
       </form>
+
+      {!registro && (
+        <section aria-labelledby="demo-titulo" className="tarjeta p-5">
+          <h2 id="demo-titulo" className="font-extrabold">¿Querés ver cómo lo usa tu equipo?</h2>
+          <p className="mt-1 text-sm text-suave">Entrá con una cuenta de demostración, sin crear nada.</p>
+          <div className="mt-3 grid gap-2">
+            {DEMO_CUENTAS.map((c) => (
+              <button key={c.usuario} type="button" disabled={cargando} onClick={() => entrarDemo(c.usuario)}
+                className="btn-secundario w-full flex-col items-start! gap-0 px-5 py-3 text-left">
+                <span>{c.texto}</span><span className="text-xs font-bold text-suave">{c.detalle}</span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-suave">
+            O cargalas a mano en la pestaña Equipo: código <b className="font-mono">{DEMO_CODIGO}</b>, usuario <b>mozo</b> o <b>barra</b>, contraseña <b className="font-mono">{DEMO_CLAVE}</b>.
+          </p>
+        </section>
+      )}
+      </div>
     </main>
   );
 }

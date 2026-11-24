@@ -300,3 +300,15 @@ body {
   .lp-trazo { stroke-dashoffset: 0; }
   .lp-recorrido-foto.lp-activa { opacity: 1; }
 }
+
+/* ── Video de presentación ── */
+.lp-video { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 28px; background: var(--lp-espresso);
+  box-shadow: 0 40px 80px -30px rgba(31,23,19,0.55), 0 0 0 1px rgba(201,169,110,0.35), 0 0 0 10px rgba(201,169,110,0.08); }
+.lp-video-play { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.9rem;
+  color: #fff; background: radial-gradient(60% 60% at 50% 50%, rgba(31,23,19,0.15), rgba(31,23,19,0.55)); transition: background 0.3s; }
+.lp-video-play:hover { background: radial-gradient(60% 60% at 50% 50%, rgba(31,23,19,0.05), rgba(31,23,19,0.45)); }
+.lp-video-boton { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 999px; background: var(--lp-laton); color: var(--lp-espresso);
+  padding-left: 4px; box-shadow: 0 0 0 10px rgba(201,169,110,0.25); transition: transform 0.3s, box-shadow 0.3s; animation: lp-latido 2.4s ease-in-out infinite; }
+.lp-video-play:hover .lp-video-boton { transform: scale(1.07); box-shadow: 0 0 0 16px rgba(201,169,110,0.2); }
+@keyframes lp-latido { 50% { box-shadow: 0 0 0 18px rgba(201,169,110,0.08); } }
+.lp-video-play:focus-visible { outline: 3px solid var(--lp-laton); outline-offset: -6px; }

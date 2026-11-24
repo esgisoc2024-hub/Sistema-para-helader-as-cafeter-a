@@ -5,6 +5,7 @@ import "@fontsource-variable/fraunces/opsz-italic.css";
 import "@fontsource/caveat/500.css";
 import { Movimiento } from "@/components/Movimiento";
 import { Recorrido, type Momento } from "@/components/Recorrido";
+import { VideoPresentacion } from "@/components/VideoPresentacion";
 // Fotos propias del cliente
 import charla from "../../public/inicio/charla.webp";
 import terraza from "../../public/inicio/mesa-terraza.webp";
@@ -163,6 +164,15 @@ export default function Inicio() {
           <p data-revelar className="lp-titulo text-3xl leading-snug sm:text-[2.6rem]">
             Los lugares cambian. <em>La sensación de ser bien atendido</em> es la que hace volver.
           </p>
+        </section>
+
+        {/* ── Video de presentación ── */}
+        <section id="video" aria-label="Video de presentación" className="mx-auto max-w-5xl scroll-mt-10 px-4 pb-24">
+          <div data-revelar>
+            <VideoPresentacion src="/inicio/presentacion.mp4" portada="/inicio/presentacion-portada.webp"
+              titulo="Mesa Match en una heladería: cómo pide el cliente y cómo llega a la barra" />
+          </div>
+          <p data-revelar className="mt-5 text-center text-sm text-[var(--lp-suave)]">10 segundos para ver el sistema funcionando en un salón.</p>
         </section>
 
         {/* ── Un pedido en cuatro tiempos (sección fija con scroll) ── */}
