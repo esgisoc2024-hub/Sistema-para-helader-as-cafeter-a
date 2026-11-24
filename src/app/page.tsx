@@ -17,8 +17,7 @@ import conoChocolate from "../../public/inicio/cono-chocolate.webp";
 import cafeBiscotti from "../../public/inicio/cafe-biscotti.webp";
 import barraCafe from "../../public/inicio/barra-cafe.webp";
 import salonCafe from "../../public/inicio/salon-cafe.webp";
-import mesaRestaurante from "../../public/inicio/mesa-restaurante.webp";
-import brindis from "../../public/inicio/brindis-cafe.webp";
+import baristas from "../../public/inicio/baristas.webp";
 
 // Mesa 1 de "Heladería Demo": carta de prueba en modo demo (no crea pedidos reales).
 const DEMO = "/m/e6b698b6ab?demo=1";
@@ -71,7 +70,7 @@ const PREGUNTAS = [
   { p: "¿Hay permanencia?", r: "No. Se paga mes a mes y lo das de baja cuando quieras." },
 ];
 
-const CREDITOS = ["Jonas Jacobsson", "Mona Jain", "Di Bella Coffee", "Vanessa", "carlos lugo", "Dimitar Krastev", "Alexis Rodriguez", "Sadia Alam", "Jonathan Borba", "Petr Sevcovic"];
+const CREDITOS = ["Kris Tian", "Di Bella Coffee", "Vanessa", "carlos lugo", "Dimitar Krastev", "Alexis Rodriguez", "Sadia Alam", "Jonathan Borba", "Petr Sevcovic"];
 
 export default function Inicio() {
   return (
@@ -95,69 +94,49 @@ export default function Inicio() {
       </header>
 
       <main>
-        {/* ── Portada: el celular apoyado en la mesa y los avisos de la barra flotando arriba, en vidrio ── */}
+        {/* ── Portada editorial: foto real de la barra y la comanda impresa al instante ── */}
         <section className="lp-portada">
-          <div aria-hidden className="lp-portada-fondo lp-capa" style={{ "--d": -12 } as React.CSSProperties}>
-            <Image src={mesaRestaurante} alt="" priority sizes="100vw" className="lp-respira h-full w-full object-cover" />
-          </div>
-          <div aria-hidden className="lp-portada-velo" />
-
-          <div className="relative z-10 mx-auto grid min-h-[100svh] max-w-6xl items-center gap-6 px-4 pb-10 pt-28 md:grid-cols-[1fr_1.1fr] md:gap-10">
+          <div className="mx-auto grid min-h-[100svh] max-w-6xl items-center gap-14 px-4 pb-16 pt-28 md:grid-cols-[1fr_0.95fr] md:gap-16">
             <div className="lp-entrada">
-              <p className="lp-mano text-2xl text-[var(--lp-laton)]">helado, café & mesas bien atendidas.</p>
-              <h1 className="lp-titulo mt-3 text-[2.9rem] leading-[1.02] text-white sm:text-6xl md:text-[4.4rem]">
+              <p className="lp-sobre">Pedidos en mesa · Heladerías y cafeterías</p>
+              <h1 className="lp-titulo mt-5 text-[2.9rem] leading-[1.02] sm:text-6xl md:text-[4.4rem]">
                 Que nadie en tu salón <em>espere</em> de más.
               </h1>
-              <p className="mt-6 max-w-md text-lg leading-relaxed text-white/75">
-                Tus clientes piden desde la mesa con un QR, la barra escucha la campanita al instante y ve qué mesa la está llamando.
-                Para heladerías y cafeterías con alma.
+              <p className="mt-6 max-w-md text-lg leading-relaxed text-[var(--lp-suave)]">
+                Tus clientes piden desde la mesa con un QR. La comanda llega a la barra con su campanita, y si una mesa llama al mozo, lo ven al instante.
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
-                <Link href="/login?modo=registro" className="lp-btn lp-btn-laton">Crear mi local</Link>
-                <Link href={DEMO} className="lp-btn lp-btn-linea">Probar la carta</Link>
+                <Link href="/login?modo=registro" className="lp-btn lp-btn-oscuro">Crear mi local</Link>
+                <Link href={DEMO} className="lp-btn lp-btn-borde">Probar la carta</Link>
               </div>
-              <p className="mt-6 text-sm tracking-wide text-white/50">Sin instalar nada · Sin permanencia · Con tu marca</p>
+              <dl className="mt-12 grid max-w-md grid-cols-3 gap-6 border-t border-[var(--lp-linea)] pt-6">
+                {[["0 min", "del QR a la barra"], ["Sin app", "para tus clientes"], ["Mes a mes", "sin permanencia"]].map(([n, t]) => (
+                  <div key={n}><dt className="lp-titulo text-2xl">{n}</dt><dd className="mt-1 text-sm text-[var(--lp-suave)]">{t}</dd></div>
+                ))}
+              </dl>
             </div>
 
-            <div className="lp-mesa" aria-hidden>
-              {/* Brindis: la mano levanta el café hacia la cámara */}
-              <div className="lp-capa lp-brindis" style={{ "--d": 14 } as React.CSSProperties}>
-                <div><Image src={brindis} alt="" sizes="(min-width: 768px) 240px, 40vw" className="h-full w-full object-cover" /></div>
-              </div>
-
-              {/* Celular apoyado sobre la mesa */}
-              <div className="lp-capa lp-movil-caja" style={{ "--d": 24 } as React.CSSProperties}>
-                <div className="lp-movil-sombra" />
-                <div className="lp-movil">
-                  <div className="lp-movil-pantalla">
-                    <span className="lp-movil-reflejo" />
-                    <p className="lp-titulo text-[15px] text-white/90">Mesa Match</p>
-                    <p className="text-[9px] tracking-[0.2em] text-white/40 uppercase">Barra · en vivo</p>
-                    <div className="mt-3 space-y-1.5">{[0, 1, 2, 3].map((i) => <span key={i} className="lp-movil-linea" style={{ width: `${90 - i * 14}%` }} />)}</div>
-                  </div>
+            <div className="lp-entrada relative mx-auto w-full max-w-[460px]" style={{ animationDelay: "0.15s" }}>
+              <figure className="lp-foto-portada">
+                <Image src={baristas} alt="Dos baristas trabajando detrás de la barra de un café" priority sizes="(min-width: 768px) 460px, 92vw"
+                  className="lp-respira-lento h-full w-full object-cover" />
+              </figure>
+              {/* Comanda impresa: papel térmico que sale línea por línea */}
+              <div className="lp-ticket" aria-label="Comanda de la mesa 4: un vasito de pistacho y dulce de leche, dos flat white" role="img">
+                <div className="lp-ticket-papel">
+                  <p className="flex justify-between"><b>MESA 4</b><span>21:14</span></p>
+                  <p className="lp-ticket-corte" />
+                  <p><b>1 × VASITO 1/4 KG</b></p>
+                  <p className="pl-3">Pistacho · Dulce de leche</p>
+                  <p className="mt-1"><b>2 × FLAT WHITE</b></p>
+                  <p className="pl-3">Leche de almendras</p>
+                  <p className="lp-ticket-corte" />
+                  <p className="flex justify-between"><span>Pidió desde el QR</span><span>#0412</span></p>
                 </div>
               </div>
-
-              {/* Avisos de vidrio que salen del celular y quedan flotando */}
-              <ol className="lp-capa lp-avisos" style={{ "--d": 44 } as React.CSSProperties}>
-                {[
-                  { icono: "🔔", titulo: "Mesa 4 · Pedido nuevo", texto: "1 cucurucho · 2 flat white", tono: "lp-tono-laton" },
-                  { icono: "✋", titulo: "Mesa 7 llama al mozo", texto: "Esperando hace 1 min", tono: "lp-tono-terracota" },
-                  { icono: "🧾", titulo: "Mesa 2 pide la cuenta", texto: "$ 18.400 · efectivo", tono: "lp-tono-salvia" },
-                ].map((n, i) => (
-                  <li key={n.titulo} className="lp-aviso" style={{ "--i": i } as React.CSSProperties}>
-                    <div className="lp-aviso-vidrio">
-                      <span className={`lp-aviso-icono ${n.tono}`}>{n.icono}</span>
-                      <span className="min-w-0 flex-1"><b className="block truncate">{n.titulo}</b><span className="text-white/70">{n.texto}</span></span>
-                      <span className="self-start text-[11px] text-white/50">ahora</span>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-              <p className="lp-capa lp-mano lp-nota-mesa" style={{ "--d": 34 } as React.CSSProperties}>cada mesa, a tiempo ♡</p>
+              <p className="lp-pie-foto">La barra, en tiempo real.</p>
             </div>
           </div>
-          <div aria-hidden className="lp-bajar hidden md:block">deslizá</div>
         </section>
 
         {/* ── Frase ── */}

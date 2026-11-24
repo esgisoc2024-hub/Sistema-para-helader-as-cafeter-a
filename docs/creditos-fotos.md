@@ -14,5 +14,4 @@ Fotos de [Unsplash](https://unsplash.com/license) (licencia Unsplash: uso comerc
 | cafe-biscotti.webp | Sadia Alam | https://unsplash.com/photos/Tz6004NuNL8 |
 | barra-cafe.webp | Jonathan Borba | https://unsplash.com/photos/21tOEaJPM_o |
 | salon-cafe.webp | Petr Sevcovic | https://unsplash.com/photos/qE1jxYXiwOA |
-| mesa-restaurante.webp | Jonas Jacobsson | https://unsplash.com/photos/1iTKoFJvJ6E |
-| brindis-cafe.webp | Mona Jain | https://unsplash.com/photos/_XxsYdQJekQ |
+| baristas.webp | Kris Tian | https://images.unsplash.com/photo-1791969777417-e16d34aced59 |
