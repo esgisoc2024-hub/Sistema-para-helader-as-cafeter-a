@@ -245,6 +245,13 @@ language sql security definer set search_path = public as $$
   update avisos set enviado_at = now() where id = p_id
 $$;
 
+-- Clave que protege la función "avisos" (cron y webhook). Vive en Vault con el nombre 'avisos_secreto'.
+create or replace function public.avisos_clave() returns text
+language plpgsql stable security definer set search_path = public as $$
+begin
+  return (select decrypted_secret from vault.decrypted_secrets where name = 'avisos_secreto' limit 1);
+end $$;
+
 -- ── Administradora ──
 create or replace function public.admin_config() returns jsonb
 language plpgsql stable security definer set search_path = public as $$
@@ -316,6 +323,7 @@ revoke execute on function public.mp_registrar_suscripcion(uuid, text, text, tex
 revoke execute on function public.mp_sincronizar(text, text, date) from public, anon, authenticated;
 revoke execute on function public.avisos_pendientes() from public, anon, authenticated;
 revoke execute on function public.marcar_aviso_enviado(bigint) from public, anon, authenticated;
+revoke execute on function public.avisos_clave() from public, anon, authenticated;
 revoke execute on function public.admin_config() from public, anon;
 revoke execute on function public.admin_guardar_config(int, int, numeric, numeric, text) from public, anon;
 revoke execute on function public.admin_extender_prueba(uuid, int) from public, anon;
@@ -335,5 +343,6 @@ do $$ begin
     grant execute on function public.mp_sincronizar(text, text, date) to service_role;
     grant execute on function public.avisos_pendientes() to service_role;
     grant execute on function public.marcar_aviso_enviado(bigint) to service_role;
+    grant execute on function public.avisos_clave() to service_role;
   end if;
 end $$;

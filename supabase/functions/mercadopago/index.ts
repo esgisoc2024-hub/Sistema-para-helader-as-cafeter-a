@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
 
   // Si hubo un pago nuevo o una baja, se manda el mail a la administradora en el momento.
   const avisosUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/avisos`;
-  const secretoAvisos = Deno.env.get("AVISOS_SECRETO");
+  const { data: secretoAvisos } = await admin.rpc("avisos_clave");
   if (secretoAvisos) {
     await fetch(avisosUrl, { method: "POST", headers: { "x-avisos-secreto": secretoAvisos } }).catch(() => null);
   }

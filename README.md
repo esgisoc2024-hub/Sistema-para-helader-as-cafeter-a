@@ -85,13 +85,13 @@ createdb suscripcion && psql -d suscripcion -f supabase/tests/stub_supabase.sql 
    - `MP_ACCESS_TOKEN`: Access Token de producción de la aplicación de Mercado Pago.
    - `MP_WEBHOOK_SECRET`: clave secreta de los webhooks de esa aplicación (opcional pero recomendado).
    - `APP_URL`: dirección pública del sistema, por ejemplo `https://mesamatch.vercel.app`.
-   - `AVISOS_SECRETO`: una clave larga cualquiera, la usa el cron para llamar a `avisos`.
    - `RESEND_API_KEY` y `AVISOS_REMITENTE` (por ejemplo `Mesa Match <avisos@tudominio.com>`): cuando haya dominio verificado en Resend. Hasta entonces los avisos quedan guardados y no se manda nada.
 4. En Mercado Pago → Tus integraciones → Webhooks: URL `https://<proyecto>.supabase.co/functions/v1/mercadopago`, eventos **Planes y suscripciones** (`subscription_preapproval` y `subscription_authorized_payment`).
 5. Cron diario de avisos (SQL, con las extensiones `pg_cron` y `pg_net`):
 
 ```sql
-select vault.create_secret('<el mismo AVISOS_SECRETO>', 'avisos_secreto');
+create extension if not exists pg_cron; create extension if not exists pg_net;
+select vault.create_secret(encode(gen_random_bytes(24), 'hex'), 'avisos_secreto');
 select cron.schedule('avisos-diarios', '0 12 * * *', $$
   select net.http_post(
     url := 'https://<proyecto>.supabase.co/functions/v1/avisos',

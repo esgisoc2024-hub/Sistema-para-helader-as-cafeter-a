@@ -1,5 +1,5 @@
 // Función "avisos": manda por email (Resend) los avisos pendientes de prueba, pagos y bajas.
-// La llama el cron diario (y el webhook de Mercado Pago) con el header x-avisos-secreto.
+// La llama el cron diario (y el webhook de Mercado Pago) con el header x-avisos-secreto (clave guardada en Vault).
 // Si todavía no hay RESEND_API_KEY / AVISOS_REMITENTE, no manda nada y los avisos quedan esperando (hasta 7 días).
 import { createClient } from "npm:@supabase/supabase-js@2.58.0";
 
@@ -67,12 +67,12 @@ function armar(a: Aviso, appUrl: string): { para: string; asunto: string; cuerpo
 }
 
 Deno.serve(async (req) => {
-  const secreto = Deno.env.get("AVISOS_SECRETO");
-  if (!secreto || req.headers.get("x-avisos-secreto") !== secreto) return responder({ error: "sin_permiso" }, 401);
-
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  // La clave vive en Vault ('avisos_secreto'); la usan el cron y el webhook de Mercado Pago.
+  const { data: secreto } = await admin.rpc("avisos_clave");
+  if (!secreto || req.headers.get("x-avisos-secreto") !== secreto) return responder({ error: "sin_permiso" }, 401);
   const { data, error } = await admin.rpc("avisos_pendientes");
   if (error) return responder({ error: "no_se_pudo_leer" }, 500);
   const pendientes = (data ?? []) as Aviso[];

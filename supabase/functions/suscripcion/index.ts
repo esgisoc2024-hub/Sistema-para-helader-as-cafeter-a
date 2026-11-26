@@ -19,7 +19,8 @@ Deno.serve(async (req) => {
 
   const tokenMp = Deno.env.get("MP_ACCESS_TOKEN");
   if (!tokenMp) return responder({ error: "mp_no_configurado" }, 503);
-  const appUrl = (Deno.env.get("APP_URL") ?? "").replace(/\/$/, "");
+  // Dirección del sistema para volver de Mercado Pago: APP_URL o, si no está, la página desde donde se pidió.
+  const appUrl = (Deno.env.get("APP_URL") ?? req.headers.get("origin") ?? "").replace(/\/$/, "");
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
     auth: { persistSession: false, autoRefreshToken: false },
