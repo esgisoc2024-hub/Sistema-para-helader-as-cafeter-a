@@ -1,5 +1,6 @@
 "use client";
 // Sección Administración (plan Premium). Solo el dueño la ve en el menú.
+import Link from "next/link";
 import { usePanel } from "@/components/PanelContexto";
 
 const INCLUYE = [
@@ -14,13 +15,13 @@ const INCLUYE = [
 ];
 
 export default function AdministracionLayout({ children }: { children: React.ReactNode }) {
-  const { negocio, usuario } = usePanel();
+  const { negocio, usuario, suscripcion } = usePanel();
 
   if (usuario.rol !== "duenio") {
     return <p className="tarjeta p-6 text-center text-suave">Esta sección es solo para el dueño del local.</p>;
   }
 
-  if (negocio.plan !== "premium") {
+  if ((suscripcion?.plan_vigente ?? negocio.plan) !== "premium") {
     return (
       <section className="tarjeta mx-auto max-w-2xl p-6">
         <p className="text-4xl" aria-hidden>🔒</p>
@@ -34,7 +35,7 @@ export default function AdministracionLayout({ children }: { children: React.Rea
             </li>
           ))}
         </ul>
-        <p className="mt-5 text-sm font-bold">Para pasarte a Premium, escribinos.</p>
+        <Link href="/panel/suscripcion" className="btn-primario mt-5 inline-block">Pasarme a Premium</Link>
       </section>
     );
   }

@@ -11,14 +11,17 @@ interface Local {
   duenio: string | null; email: string | null; equipo: number; mesas: number; productos: number;
   pedidos_7d: number; pedidos_30d: number; ventas_30d: number; ultimo_pedido: string | null;
   contacto: string | null; pagado_hasta: string | null; notas: string | null;
+  situacion: "prueba" | "gracia" | "vencida" | "activo" | "suspendido"; prueba_hasta: string | null;
+  mp_estado: string | null; mp_plan: "basico" | "premium" | null;
 }
+interface Config { dias_prueba: number; dias_gracia: number; precio_basico: number; precio_premium: number; email_avisos: string }
 
 const ESTADOS: Record<Estado, { texto: string; clase: string }> = {
   prueba: { texto: "En prueba", clase: "bg-limon/25 text-tinta" },
   activo: { texto: "Activo", clase: "bg-menta text-white" },
   suspendido: { texto: "Suspendido", clase: "bg-frutilla text-white" },
 };
-const FILTROS = { todos: "Todos", uso: "Lo usan", sinuso: "Sin uso", vencidos: "Pago vencido", suspendidos: "Suspendidos" } as const;
+const FILTROS = { todos: "Todos", uso: "Lo usan", sinuso: "Sin uso", prueba: "Prueba por vencer", vencidos: "Pago vencido", suspendidos: "Suspendidos" } as const;
 type Filtro = keyof typeof FILTROS;
 
 const dias = (iso: string) => Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
@@ -26,6 +29,19 @@ const fecha = (iso: string) => new Date(iso).toLocaleDateString("es-AR", { day: 
 const hoy = () => new Date().toISOString().slice(0, 10);
 const usa = (l: Local) => l.pedidos_7d > 0;
 const vencido = (l: Local) => l.estado === "activo" && (!l.pagado_hasta || l.pagado_hasta < hoy());
+const diasPrueba = (l: Local) => l.prueba_hasta ? Math.round((new Date(l.prueba_hasta + "T12:00:00").getTime() - new Date(hoy() + "T12:00:00").getTime()) / 86400000) : null;
+// Prueba que termina en 3 días o menos, o que ya terminó (en gracia o vencida).
+const pruebaPorVencer = (l: Local) => l.estado === "prueba" && (l.situacion !== "prueba" || (diasPrueba(l) ?? 99) <= 3);
+const MP: Record<string, string> = { authorized: "Mercado Pago al día", pending: "Mercado Pago: esperando el pago", paused: "Mercado Pago: pausada", cancelled: "Mercado Pago: cancelada" };
+
+function textoPrueba(l: Local) {
+  if (l.estado !== "prueba") return null;
+  const d = diasPrueba(l);
+  if (l.situacion === "vencida") return "Prueba vencida: carta QR pausada";
+  if (l.situacion === "gracia") return "Prueba terminada: en días de gracia";
+  if (d === null) return "En prueba";
+  return d === 0 ? "Prueba: termina hoy" : `Prueba: quedan ${d} ${d === 1 ? "día" : "días"} (hasta ${fecha(l.prueba_hasta + "T12:00:00")})`;
+}
 
 function ultimaActividad(l: Local) {
   if (!l.ultimo_pedido) return "Nunca hizo un pedido";
@@ -62,13 +78,13 @@ export default function Admin() {
 
   const cuenta = {
     todos: locales.length, uso: locales.filter(usa).length,
-    sinuso: locales.filter((l) => !usa(l) && l.estado !== "suspendido").length,
+    sinuso: locales.filter((l) => !usa(l) && l.estado !== "suspendido").length, prueba: locales.filter(pruebaPorVencer).length,
     vencidos: locales.filter(vencido).length, suspendidos: locales.filter((l) => l.estado === "suspendido").length,
   };
   const b = busqueda.trim().toLowerCase();
   const visibles = locales.filter((l) =>
     (filtro === "todos" || (filtro === "uso" && usa(l)) || (filtro === "sinuso" && !usa(l) && l.estado !== "suspendido")
-      || (filtro === "vencidos" && vencido(l)) || (filtro === "suspendidos" && l.estado === "suspendido"))
+      || (filtro === "prueba" && pruebaPorVencer(l)) || (filtro === "vencidos" && vencido(l)) || (filtro === "suspendidos" && l.estado === "suspendido"))
     && (!b || `${l.nombre} ${l.duenio ?? ""} ${l.email ?? ""}`.toLowerCase().includes(b)));
 
   return (
@@ -87,6 +103,7 @@ export default function Admin() {
           </button>
         ))}
       </div>
+      <AjustesPrueba />
       <input className="campo mt-3" placeholder="Buscar por local, dueño o email" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
 
       <ul className="mt-4 grid gap-3 md:grid-cols-2">
@@ -125,6 +142,10 @@ export default function Admin() {
               <p className={`text-sm ${vencido(l) ? "font-bold text-frutilla-osc" : "text-suave"}`}>
                 {l.pagado_hasta ? `Pagado hasta: ${fecha(l.pagado_hasta + "T12:00:00")}` : "Sin pagos anotados"}
               </p>
+              {textoPrueba(l) && <p className={`text-sm ${pruebaPorVencer(l) ? "font-bold text-frutilla-osc" : "text-suave"}`}>{textoPrueba(l)}</p>}
+              {l.mp_estado && <p className={`text-sm ${l.mp_estado === "authorized" ? "text-suave" : "font-bold text-frutilla-osc"}`}>
+                {MP[l.mp_estado] ?? `Mercado Pago: ${l.mp_estado}`}{l.mp_plan && ` · plan ${l.mp_plan === "premium" ? "Premium" : "Básico"}`}
+              </p>}
               {l.notas && <p className="mt-2 rounded-xl bg-rubor/60 px-3 py-2 text-sm">{l.notas}</p>}
             </button>
           </li>
@@ -154,6 +175,14 @@ function Editar({ local, onCerrar, onGuardado }: { local: Local; onCerrar: () =>
   const [notas, setNotas] = useState(local.notas ?? "");
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
+
+  async function extender(dias: number) {
+    setGuardando(true); setError("");
+    const { error } = await supabase().rpc("admin_extender_prueba", { p_negocio: local.id, p_dias: dias });
+    setGuardando(false);
+    if (error) return setError(mensajeError(error));
+    onGuardado();
+  }
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
@@ -200,6 +229,18 @@ function Editar({ local, onCerrar, onGuardado }: { local: Local; onCerrar: () =>
           <p className="mt-2 text-sm text-suave">Premium suma la sección Administración (caja, libro diario y más) para el dueño.</p>
         </fieldset>
 
+        {local.estado !== "activo" && (
+          <fieldset className="mt-4">
+            <legend className="etiqueta">Prueba gratis</legend>
+            <p className="text-sm text-suave">{textoPrueba(local) ?? "Sin prueba"}</p>
+            <div className="mt-2 flex gap-2">
+              {[7, 14].map((d) => (
+                <button key={d} type="button" className="btn-secundario" disabled={guardando} onClick={() => extender(d)}>+{d} días de prueba</button>
+              ))}
+            </div>
+          </fieldset>
+        )}
+
         <label className="etiqueta mt-4" htmlFor="a-pagado">Pagado hasta</label>
         <input id="a-pagado" type="date" className="campo" value={pagado} onChange={(e) => setPagado(e.target.value)} />
         <label className="etiqueta mt-3" htmlFor="a-contacto">WhatsApp o teléfono</label>
@@ -214,5 +255,60 @@ function Editar({ local, onCerrar, onGuardado }: { local: Local; onCerrar: () =>
         </div>
       </form>
     </div>
+  );
+}
+
+// Ajustes de la prueba gratis y los planes: valen para los locales que se registren desde ahora.
+function AjustesPrueba() {
+  const [abierto, setAbierto] = useState(false);
+  const [c, setC] = useState<Config | null>(null);
+  const [mensaje, setMensaje] = useState("");
+  const [guardando, setGuardando] = useState(false);
+
+  useEffect(() => {
+    if (abierto && !c) supabase().rpc("admin_config").then(({ data }) => data && setC(data as Config));
+  }, [abierto, c]);
+
+  async function guardar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!c) return;
+    setGuardando(true); setMensaje("");
+    const { error } = await supabase().rpc("admin_guardar_config", {
+      p_dias_prueba: Number(c.dias_prueba), p_dias_gracia: Number(c.dias_gracia),
+      p_precio_basico: Number(c.precio_basico), p_precio_premium: Number(c.precio_premium), p_email_avisos: c.email_avisos,
+    });
+    setGuardando(false);
+    setMensaje(error ? mensajeError(error) : "Guardado.");
+  }
+
+  const campo = (k: keyof Config, titulo: string, tipo = "number") => (
+    <label className="block">
+      <span className="etiqueta">{titulo}</span>
+      <input type={tipo} className="campo" value={c ? String(c[k]) : ""} min={tipo === "number" ? 0 : undefined}
+        onChange={(e) => c && setC({ ...c, [k]: tipo === "number" ? Number(e.target.value) : e.target.value })} required />
+    </label>
+  );
+
+  return (
+    <details className="tarjeta mt-3 p-4" open={abierto} onToggle={(e) => setAbierto((e.target as HTMLDetailsElement).open)}>
+      <summary className="cursor-pointer font-extrabold">Prueba gratis, precios y avisos</summary>
+      {!c ? <p className="mt-3 text-sm text-suave">Cargando…</p> : (
+        <form onSubmit={guardar} className="mt-3 grid gap-3 sm:grid-cols-2">
+          {campo("dias_prueba", "Días de prueba gratis")}
+          {campo("dias_gracia", "Días de gracia al vencer")}
+          {campo("precio_basico", "Precio Básico por mes ($)")}
+          {campo("precio_premium", "Precio Premium por mes ($)")}
+          <div className="sm:col-span-2">{campo("email_avisos", "Email donde recibís los avisos", "email")}</div>
+          <p className="text-sm text-suave sm:col-span-2">
+            Los días de prueba valen para los locales que se registren desde ahora; a uno en particular le podés extender la prueba desde su ficha.
+            Los precios nuevos valen para las suscripciones nuevas (las de Mercado Pago ya creadas siguen con su precio).
+          </p>
+          <div className="flex items-center gap-3 sm:col-span-2">
+            <button className="btn-primario" disabled={guardando}>{guardando ? "Guardando…" : "Guardar ajustes"}</button>
+            {mensaje && <span className="text-sm text-suave">{mensaje}</span>}
+          </div>
+        </form>
+      )}
+    </details>
   );
 }
