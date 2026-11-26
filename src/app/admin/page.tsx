@@ -28,7 +28,8 @@ const dias = (iso: string) => Math.floor((Date.now() - new Date(iso).getTime()) 
 const fecha = (iso: string) => new Date(iso).toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" });
 const hoy = () => new Date().toISOString().slice(0, 10);
 const usa = (l: Local) => l.pedidos_7d > 0;
-const vencido = (l: Local) => l.estado === "activo" && (!l.pagado_hasta || l.pagado_hasta < hoy());
+// Solo cuenta como vencido un local activo con fecha de pago ya pasada (sin fecha cargada no se marca).
+const vencido = (l: Local) => l.estado === "activo" && !!l.pagado_hasta && l.pagado_hasta < hoy();
 const diasPrueba = (l: Local) => l.prueba_hasta ? Math.round((new Date(l.prueba_hasta + "T12:00:00").getTime() - new Date(hoy() + "T12:00:00").getTime()) / 86400000) : null;
 // Prueba que termina en 3 días o menos, o que ya terminó (en gracia o vencida).
 const pruebaPorVencer = (l: Local) => l.estado === "prueba" && (l.situacion !== "prueba" || (diasPrueba(l) ?? 99) <= 3);
