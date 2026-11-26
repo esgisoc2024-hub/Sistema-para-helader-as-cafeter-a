@@ -6,6 +6,8 @@ import "@fontsource/caveat/500.css";
 import { Movimiento } from "@/components/Movimiento";
 import { Recorrido, type Momento } from "@/components/Recorrido";
 import { VideoPresentacion } from "@/components/VideoPresentacion";
+import { precio } from "@/lib/formato";
+import { DIAS_PRUEBA_BASE, PRECIOS_BASE } from "@/lib/suscripcion";
 // Fotos propias del cliente
 import charla from "../../public/inicio/charla.webp";
 import terraza from "../../public/inicio/mesa-terraza.webp";
@@ -56,10 +58,24 @@ const ROLES = [
   { quien: "Vos", texto: "Tu carta, tus precios, tu logo y tus colores. Ventas, sabores más pedidos y tiempos de espera." },
 ];
 
+// Precios y días de prueba: los carga la administradora en /admin (se leen de la base cada una hora).
+export const revalidate = 3600;
+async function leerConfig(): Promise<{ dias_prueba: number; precios: { basico: number; premium: number } }> {
+  const base = { dias_prueba: DIAS_PRUEBA_BASE, precios: PRECIOS_BASE };
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL, clave = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !clave) return base;
+  try {
+    const r = await fetch(`${url}/rest/v1/rpc/config_publica`, {
+      method: "POST", headers: { apikey: clave, "Content-Type": "application/json" }, body: "{}", next: { revalidate: 3600 },
+    });
+    return r.ok ? { ...base, ...(await r.json()) } : base;
+  } catch { return base; }
+}
+
 const PLANES = [
-  { nombre: "Básico", para: "Para ordenar el salón",
+  { nombre: "Básico", clave: "basico" as const, para: "Para ordenar el salón",
     incluye: ["Carta por QR con tu marca", "Comandas con campanita siempre activa", "Aviso en la barra cuando una mesa llama", "Mapa de mesas y cobro", "Sabores y opciones por producto", "Reportes de ventas y espera"] },
-  { nombre: "Premium", para: "Para saber si ganás plata", destacado: true,
+  { nombre: "Premium", clave: "premium" as const, para: "Para saber si ganás plata", destacado: true,
     incluye: ["Todo lo del plan Básico", "Caja: apertura y cierre", "Libro diario", "Cuentas por pagar y gastos fijos", "Proveedores, costos y deudas", "Cuentas por cobrar", "Empleados y sueldos con comisiones", "Costos, márgenes y resultado del mes"] },
 ];
 
@@ -69,12 +85,14 @@ const PREGUNTAS = [
   { p: "¿Y si la barra no escucha la campanita?", r: "La campanita vuelve a sonar cada minuto mientras haya comandas sin empezar, y cuando una mesa llama aparece un cartel grande que no se va hasta que alguien toca “Voy”." },
   { p: "¿El cliente paga desde el celular?", r: "No. El sistema registra el pedido y la cuenta; el cobro lo seguís haciendo como siempre: efectivo, posnet o tu QR de Mercado Pago. Sin comisiones nuevas." },
   { p: "¿Emite factura electrónica?", r: "Todavía no. La facturación la seguís haciendo con tu sistema actual." },
-  { p: "¿Hay permanencia?", r: "No. Se paga mes a mes y lo das de baja cuando quieras." },
+  { p: "¿Cómo pago el plan?", r: "Con Mercado Pago, como una suscripción mensual: se debita solo cada mes y no tenés que acordarte de nada." },
+  { p: "¿Hay permanencia?", r: "No. Se paga mes a mes y lo das de baja cuando quieras desde Mercado Pago." },
 ];
 
 const CREDITOS = ["Green Liu", "Di Bella Coffee", "Gabriela Portilho", "Vanessa", "carlos lugo", "Dimitar Krastev", "Alexis Rodriguez", "Sadia Alam", "Jonathan Borba", "Petr Sevcovic"];
 
-export default function Inicio() {
+export default async function Inicio() {
+  const config = await leerConfig();
   return (
     <div className="lp">
       <Movimiento />
@@ -302,7 +320,7 @@ export default function Inicio() {
             <div data-revelar className="text-center">
               <p className="lp-sobre">Planes</p>
               <h2 className="lp-titulo mt-3 text-4xl sm:text-5xl">Mes a mes, <em>sin permanencia.</em></h2>
-              <p className="mt-3 text-[var(--lp-suave)]">El primer mes es de prueba.</p>
+              <p className="mt-3 text-[var(--lp-suave)]">Probalo {config.dias_prueba} días gratis, sin tarjeta.</p>
             </div>
             <div className="mt-12 grid gap-6 md:grid-cols-2">
               {PLANES.map((p, i) => (
@@ -310,12 +328,13 @@ export default function Inicio() {
                   className={`flex flex-col rounded-[28px] p-9 ${p.destacado ? "lp-oscuro" : "border border-[var(--lp-linea)] bg-[var(--lp-papel)]"}`}>
                   <h3 className="lp-titulo text-4xl">{p.nombre}</h3>
                   <p className={`lp-mano mt-1 text-2xl ${p.destacado ? "text-[var(--lp-laton)]" : "text-[var(--lp-terracota)]"}`}>{p.para}</p>
+                  <p className="mt-4"><span className="lp-titulo text-4xl">{precio(config.precios[p.clave])}</span> <span className="opacity-70">/ mes</span></p>
                   <ul className="mt-6 flex-1 space-y-3">
                     {p.incluye.map((x) => (
                       <li key={x} className="flex gap-3"><span aria-hidden className="text-[var(--lp-laton)]">—</span>{x}</li>
                     ))}
                   </ul>
-                  <Link href={`/registro?plan=${p.nombre === "Premium" ? "premium" : "basico"}`} className={`lp-btn mt-9 w-full ${p.destacado ? "lp-btn-laton" : "lp-btn-oscuro"}`}>
+                  <Link href={`/registro?plan=${p.clave}`} className={`lp-btn mt-9 w-full ${p.destacado ? "lp-btn-laton" : "lp-btn-oscuro"}`}>
                     Empezar con {p.nombre}
                   </Link>
                 </article>

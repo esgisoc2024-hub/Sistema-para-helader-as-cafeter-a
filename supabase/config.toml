@@ -1,0 +1,10 @@
+# Configuración mínima para publicar las funciones con la CLI de Supabase (supabase functions deploy).
+project_id = "hwckowigwazcbsbmfkay"
+
+# Mercado Pago no manda un JWT de Supabase: la función verifica la firma del aviso y vuelve a consultar a Mercado Pago.
+[functions.mercadopago]
+verify_jwt = false
+
+# La llama el cron diario con el header x-avisos-secreto.
+[functions.avisos]
+verify_jwt = false

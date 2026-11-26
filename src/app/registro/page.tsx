@@ -1,7 +1,7 @@
 "use client";
 // Crear cuenta en un paso: datos del dueño y del local, con el plan elegido en la página de inicio (?plan=premium).
 // El plan pedido queda anotado para la administradora; Premium no se activa solo.
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,7 +9,8 @@ import "@fontsource-variable/fraunces/opsz.css";
 import "@fontsource-variable/fraunces/opsz-italic.css";
 import "@fontsource/caveat/500.css";
 import { supabase } from "@/lib/supabase";
-import { mensajeError } from "@/lib/formato";
+import { mensajeError, precio } from "@/lib/formato";
+import { DIAS_PRUEBA_BASE, PRECIOS_BASE } from "@/lib/suscripcion";
 import gelateria from "../../../public/inicio/gelateria.webp";
 
 type Plan = "basico" | "premium";
@@ -23,7 +24,7 @@ const PLANES: Record<Plan, { nombre: string; para: string; incluye: string[] }> 
     incluye: ["Todo lo del plan Básico", "Caja y libro diario", "Proveedores, gastos y cuentas por pagar", "Empleados, sueldos y resultado del mes"],
   },
 };
-const VENTAJAS = ["El primer mes es de prueba", "Sin tarjeta de crédito", "Listo para usar en 15 minutos"];
+const ventajas = (dias: number) => [`${dias} días de prueba gratis`, "Sin tarjeta de crédito", "Listo para usar en 15 minutos"];
 
 function Formulario() {
   const router = useRouter();
@@ -39,6 +40,10 @@ function Formulario() {
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [confirmar, setConfirmar] = useState(false);
+  const [config, setConfig] = useState({ dias_prueba: DIAS_PRUEBA_BASE, precios: PRECIOS_BASE });
+  useEffect(() => {
+    supabase().rpc("config_publica").then(({ data }) => { if (data) setConfig(data as typeof config); });
+  }, []);
 
   async function crear(e: React.FormEvent) {
     e.preventDefault(); setError(""); setEnviando(true);
@@ -79,13 +84,14 @@ function Formulario() {
               ))}
             </div>
             <p className="mt-4 text-white/70">{p.para}</p>
+            <p className="mt-1 text-white/90"><span className="font-bold">{precio(config.precios[plan])}</span> por mes, después de {config.dias_prueba} días gratis</p>
             <ul className="mt-3 space-y-2">
               {p.incluye.map((i) => <li key={i} className="flex gap-2"><span aria-hidden className="text-[var(--lp-laton)]">✓</span>{i}</li>)}
             </ul>
           </div>
 
           <ul className="mt-6 space-y-1.5 text-sm text-white/80 lg:mt-auto lg:pt-10">
-            {VENTAJAS.map((v) => <li key={v} className="flex items-center gap-2"><span aria-hidden className="text-[var(--lp-laton)]">♡</span>{v}</li>)}
+            {ventajas(config.dias_prueba).map((v) => <li key={v} className="flex items-center gap-2"><span aria-hidden className="text-[var(--lp-laton)]">♡</span>{v}</li>)}
           </ul>
         </div>
       </aside>

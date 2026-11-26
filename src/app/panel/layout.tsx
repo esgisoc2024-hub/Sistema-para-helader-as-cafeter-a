@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   BookOpen, ChartColumn, Coffee, HandCoins, LayoutGrid, Lock, LogOut, Menu, NotebookText, Percent, QrCode,
-  Receipt, Store, TrendingUp, Truck, Users, Wallet, X, Building2, type LucideIcon,
+  Receipt, Store, TrendingUp, Truck, Users, Wallet, X, Building2, CreditCard, type LucideIcon,
 } from "lucide-react";
 import { useSesion } from "@/lib/useSesion";
 import { supabase } from "@/lib/supabase";
@@ -13,6 +13,7 @@ import { PanelContexto } from "@/components/PanelContexto";
 import { Fondo } from "@/components/Fondo";
 import { AvisosSalon } from "@/components/AvisosSalon";
 import type { Negocio, Rol, Usuario } from "@/lib/tipos";
+import { diasTexto, fechaLarga, type MiSuscripcion } from "@/lib/suscripcion";
 
 // Pantallas del mostrador: mantienen el estilo de la marca (también cuando las abre el dueño).
 const MOSTRADOR = ["/panel/mostrador", "/panel/barra", "/panel/mesas"];
@@ -20,12 +21,26 @@ const MOSTRADOR = ["/panel/mostrador", "/panel/barra", "/panel/mesas"];
 export default function PanelLayout({ children }: { children: React.ReactNode }) {
   const sesion = useSesion();
   const router = useRouter();
+  const ruta = usePathname();
   const [esAdmin, setEsAdmin] = useState(false);
+  const [suscripcion, setSuscripcion] = useState<MiSuscripcion | null>(null);
+
+  const recargarSuscripcion = useCallback(() => {
+    supabase().rpc("mi_suscripcion").then(({ data }) => { if (data) setSuscripcion(data as MiSuscripcion); });
+  }, []);
 
   useEffect(() => {
     if (sesion.cargando || sesion.sinLogin) return;
     supabase().rpc("es_admin").then(({ data }) => setEsAdmin(data === true));
-  }, [sesion]);
+    if (sesion.usuario) recargarSuscripcion();
+  }, [sesion, recargarSuscripcion]);
+
+  // Prueba (o pago) vencida: el dueño solo puede entrar a elegir su plan.
+  const vencida = suscripcion?.situacion === "vencida";
+  const esDuenio = !sesion.cargando && !sesion.sinLogin && sesion.usuario?.rol === "duenio";
+  useEffect(() => {
+    if (vencida && esDuenio && !ruta.startsWith("/panel/suscripcion")) router.replace("/panel/suscripcion");
+  }, [vencida, esDuenio, ruta, router]);
 
   useEffect(() => {
     if (sesion.cargando) return;
@@ -40,21 +55,50 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
   const salir = async () => { await supabase().auth.signOut(); router.replace("/login"); };
 
   return (
-    <PanelContexto.Provider value={{ usuario, negocio }}>
+    <PanelContexto.Provider value={{ usuario, negocio, suscripcion, recargarSuscripcion }}>
       {usuario.rol === "duenio"
-        ? <PanelDuenio negocio={negocio} usuario={usuario} esAdmin={esAdmin} onSalir={salir}>{children}</PanelDuenio>
-        : <PanelMostrador negocio={negocio} rol={usuario.rol} onSalir={salir}>{children}</PanelMostrador>}
+        ? <PanelDuenio negocio={negocio} usuario={usuario} suscripcion={suscripcion} esAdmin={esAdmin} onSalir={salir}>
+            {vencida && !ruta.startsWith("/panel/suscripcion") ? null : children}
+          </PanelDuenio>
+        : <PanelMostrador negocio={negocio} rol={usuario.rol} suscripcion={suscripcion} onSalir={salir}>{children}</PanelMostrador>}
     </PanelContexto.Provider>
   );
 }
 
-function AvisoSuspendido({ negocio }: { negocio: Negocio }) {
-  if (negocio.estado !== "suspendido") return null;
-  return (
-    <p role="alert" className="no-imprimir bg-frutilla px-4 py-2 text-center text-sm font-bold text-white">
-      Tu cuenta está suspendida: los clientes no pueden pedir desde el QR. Escribinos para reactivarla.
-    </p>
-  );
+// Cartel arriba del panel: suspendido, días de prueba, gracia o carta pausada.
+function AvisoCuenta({ negocio, suscripcion, duenio }: { negocio: Negocio; suscripcion: MiSuscripcion | null; duenio: boolean }) {
+  const fuerte = "no-imprimir bg-frutilla px-4 py-2 text-center text-sm font-bold text-white";
+  if (negocio.estado === "suspendido" || suscripcion?.situacion === "suspendido") {
+    return <p role="alert" className={fuerte}>Tu cuenta está suspendida: los clientes no pueden pedir desde el QR. Escribinos para reactivarla.</p>;
+  }
+  if (!suscripcion) return null;
+  const elegir = duenio && <Link href="/panel/suscripcion" className="ml-2 underline">Elegir plan</Link>;
+  const { situacion, dias_restantes } = suscripcion;
+  if (situacion === "prueba" && dias_restantes != null) {
+    const pronto = dias_restantes <= 3;
+    return (
+      <p className={`no-imprimir px-4 py-2 text-center text-sm font-bold ${pronto ? "bg-limon/40 text-tinta" : "bg-rubor/70 text-tinta"}`}>
+        {dias_restantes === 0 ? "Hoy es el último día de tu prueba gratis." : `Prueba gratis: te quedan ${diasTexto(dias_restantes)}.`}
+        {elegir}
+      </p>
+    );
+  }
+  if (situacion === "gracia") {
+    return (
+      <p role="alert" className={fuerte}>
+        {suscripcion.mp_estado === "authorized" || suscripcion.pagado_hasta ? "No pudimos cobrar tu plan." : "Terminó tu prueba gratis."}
+        {" "}La carta QR se pausa el {fechaLarga(suscripcion.gracia_hasta)}.{duenio ? elegir : " Avisale al dueño."}
+      </p>
+    );
+  }
+  if (situacion === "vencida") {
+    return (
+      <p role="alert" className={fuerte}>
+        La carta QR está pausada: los clientes no pueden pedir.{duenio ? " Elegí un plan para seguir." : " Pedile al dueño que elija un plan."}
+      </p>
+    );
+  }
+  return null;
 }
 
 /* ───────── Mozos y barra: el panel de siempre ───────── */
@@ -65,7 +109,9 @@ const MENU_MOSTRADOR: { href: string; texto: string; roles: Rol[] }[] = [
   { href: "/panel/mesas", texto: "Mesas", roles: ["mozo"] },
 ];
 
-function PanelMostrador({ negocio, rol, onSalir, children }: { negocio: Negocio; rol: Rol; onSalir: () => void; children: React.ReactNode }) {
+function PanelMostrador({ negocio, rol, suscripcion, onSalir, children }: {
+  negocio: Negocio; rol: Rol; suscripcion: MiSuscripcion | null; onSalir: () => void; children: React.ReactNode;
+}) {
   const ruta = usePathname();
   const menu = MENU_MOSTRADOR.filter((m) => m.roles.includes(rol));
   return (
@@ -86,7 +132,7 @@ function PanelMostrador({ negocio, rol, onSalir, children }: { negocio: Negocio;
           </nav>
         </div>
       </header>
-      <AvisoSuspendido negocio={negocio} />
+      <AvisoCuenta negocio={negocio} suscripcion={suscripcion} duenio={false} />
       <div className="mx-auto max-w-6xl px-4 py-5">{children}</div>
     </div>
   );
@@ -104,6 +150,7 @@ const MI_LOCAL: Item[] = [
   { href: "/panel/carta", texto: "Carta", icono: BookOpen },
   { href: "/panel/local", texto: "Local y QR", icono: QrCode },
   { href: "/panel/reportes", texto: "Reportes", icono: ChartColumn },
+  { href: "/panel/suscripcion", texto: "Mi plan", icono: CreditCard },
 ];
 const ADMINISTRACION: Item[] = [
   { href: "/panel/administracion/resultado", texto: "Resultado del mes", icono: TrendingUp },
@@ -116,14 +163,15 @@ const ADMINISTRACION: Item[] = [
   { href: "/panel/administracion/margenes", texto: "Precios y márgenes", icono: Percent },
 ];
 
-function PanelDuenio({ negocio, usuario, esAdmin, onSalir, children }: {
-  negocio: Negocio; usuario: Usuario; esAdmin: boolean; onSalir: () => void; children: React.ReactNode;
+function PanelDuenio({ negocio, usuario, suscripcion, esAdmin, onSalir, children }: {
+  negocio: Negocio; usuario: Usuario; suscripcion: MiSuscripcion | null; esAdmin: boolean; onSalir: () => void; children: React.ReactNode;
 }) {
   const ruta = usePathname();
   const [abierto, setAbierto] = useState(false);
   useEffect(() => { setAbierto(false); }, [ruta]);
   const mostrador = MOSTRADOR.some((r) => ruta.startsWith(r));
-  const premium = negocio.plan === "premium";
+  const premium = (suscripcion?.plan_vigente ?? negocio.plan) === "premium";
+  const enPrueba = suscripcion?.situacion === "prueba" || (suscripcion?.situacion === "gracia" && negocio.estado === "prueba");
 
   const activo = (href: string) =>
     ruta.startsWith(href) || (ruta === "/panel/administracion" && href.endsWith("/resultado"));
@@ -153,7 +201,7 @@ function PanelDuenio({ negocio, usuario, esAdmin, onSalir, children }: {
           : <span className="grid h-9 w-9 place-items-center rounded-lg bg-frutilla font-titulo text-lg text-white">{negocio.nombre.slice(0, 1)}</span>}
         <div className="min-w-0">
           <p className="truncate font-titulo text-base leading-tight">{negocio.nombre}</p>
-          <p className="text-xs text-suave">Plan {premium ? "Premium" : "Básico"}</p>
+          <p className="text-xs text-suave">Plan {premium ? "Premium" : "Básico"}{enPrueba && " · prueba gratis"}</p>
         </div>
       </div>
 
@@ -204,7 +252,7 @@ function PanelDuenio({ negocio, usuario, esAdmin, onSalir, children }: {
       )}
 
       <div className="lg:pl-64">
-        <AvisoSuspendido negocio={negocio} />
+        <AvisoCuenta negocio={negocio} suscripcion={suscripcion} duenio />
         <div className="mx-auto max-w-6xl px-4 py-6 lg:px-8">{children}</div>
       </div>
     </div>

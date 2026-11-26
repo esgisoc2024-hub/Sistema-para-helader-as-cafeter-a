@@ -62,3 +62,39 @@ createdb mostrador && psql -d mostrador -f supabase/tests/stub_supabase.sql \
 ```
 
 Termina con `MOSTRADOR OK` (los errores de `storage` son esperables: el stub no simula el almacenamiento de imágenes).
+
+La prueba gratis, la gracia y la suscripción con Mercado Pago tienen su propia prueba (termina con `SUSCRIPCION OK`):
+
+```bash
+createdb suscripcion && psql -d suscripcion -f supabase/tests/stub_supabase.sql \
+  $(for f in supabase/migrations/*.sql; do echo -f $f; done) -f supabase/tests/suscripcion.sql
+```
+
+## Prueba gratis y suscripción
+
+- Cada local nuevo tiene **14 días de prueba gratis** (prueba el plan que eligió al registrarse) y después **2 días de gracia**. Pasada la gracia, la carta QR se pausa y el dueño solo ve la pantalla **Mi plan** (`/panel/suscripcion`).
+- El dueño se suscribe con **Mercado Pago** (débito mensual). Cuando Mercado Pago confirma el pago, el local pasa solo a *Activo* con su plan y queda pagado hasta el próximo cobro. Si un cobro falla o da de baja, al llegar esa fecha entra en gracia y después se pausa.
+- En **Mis locales** (`/admin`) se cambian los días de prueba y de gracia, los precios y el email de avisos; se ve cuántos días le quedan a cada local y se puede extender una prueba.
+- Avisos por email (Resend): al cliente 3 días antes y el día que vence la prueba; a la administradora cuando vence una prueba, cuando entra un pago y cuando alguien da de baja.
+
+### Puesta en marcha
+
+1. Aplicar la migración `20261126000015_prueba_y_suscripcion.sql`.
+2. Publicar las funciones: `supabase functions deploy suscripcion mercadopago avisos` (`mercadopago` y `avisos` van sin verificación de JWT, ver `supabase/config.toml`).
+3. Secretos de las funciones (Supabase → Edge Functions → Secrets):
+   - `MP_ACCESS_TOKEN`: Access Token de producción de la aplicación de Mercado Pago.
+   - `MP_WEBHOOK_SECRET`: clave secreta de los webhooks de esa aplicación (opcional pero recomendado).
+   - `APP_URL`: dirección pública del sistema, por ejemplo `https://mesamatch.vercel.app`.
+   - `RESEND_API_KEY` y `AVISOS_REMITENTE` (por ejemplo `Mesa Match <avisos@tudominio.com>`): cuando haya dominio verificado en Resend. Hasta entonces los avisos quedan guardados y no se manda nada.
+4. En Mercado Pago → Tus integraciones → Webhooks: URL `https://<proyecto>.supabase.co/functions/v1/mercadopago`, eventos **Planes y suscripciones** (`subscription_preapproval` y `subscription_authorized_payment`).
+5. Cron diario de avisos (SQL, con las extensiones `pg_cron` y `pg_net`):
+
+```sql
+create extension if not exists pg_cron; create extension if not exists pg_net;
+select vault.create_secret(encode(gen_random_bytes(24), 'hex'), 'avisos_secreto');
+select cron.schedule('avisos-diarios', '0 12 * * *', $$
+  select net.http_post(
+    url := 'https://<proyecto>.supabase.co/functions/v1/avisos',
+    headers := jsonb_build_object('x-avisos-secreto', (select decrypted_secret from vault.decrypted_secrets where name = 'avisos_secreto'))
+  ) $$);
+```
